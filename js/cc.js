@@ -44,7 +44,9 @@ if(document.domain == "st.chatango.com") {
         // ----------------------------------------------------------
         // Process data before it is sent to the webSocket data
         // ----------------------------------------------------------
-        if( data.match( /.+:.+:<n.+<f.+>/g ) ) {  // catch chatango messages only 
+        
+        if( data.match( /^bm:/gi ) ) {  // catch chatango messages only 
+            
             if( cc.settings.powerSwitch == "on" ) { // this thing on?
                 cc.processFrame(data);
                 if( cc.getData().length < 2800) {
@@ -186,10 +188,10 @@ function processFrame(str) {
     this.msg.lines = [];
     this.msg.styled = "";    
     this.msg.raw = str.trim();
-    this.msg.header = str.match(/bm:.{1,4}:\d{1,5}:/g);       
+    this.msg.header = str.match(/^bm:\w{1,5}:\w{1,5}:/g);       
     this.msg.userMessage = 
             this.htmlUnescape( 
-            str.replace(/.+<f x[a-fA-F0-9]{3,8}=\"\d*\">/g,"")
+            str.replace(/^bm:\w{1,5}:\w{1,5}:(<n\w{3,6}\/>)?(<f x(\d{2})?(\w{3,6})?="(\w*)?">)?/gi,"")
             .replace(/(\r\n|\n|\r)/gm,"")
             .replace(/<b>|<i>|<u>/gi,"$& ")
             .replace(/<\/b>|<\/i>|<\/u>/gi, " $&") );
@@ -208,17 +210,22 @@ function processFrame(str) {
     } 
     this.msg.userMessage = this.msg.userMessage.trim();
 
-    this.settings.userFontFace = str
-        .match(/<f x[a-fA-F0-9]{3,8}=\"(\d*)\">/gi)[0]
-        .replace(/<f x[a-fA-F0-9]{3,8}=\"/gi, "")
-        .replace(/\">/gi, "");
-    this.settings.usernameColor = str.match(/<n[a-fA-F0-9]{3,6}\/>/gi)[0];
-    if ( str.match(/<f x[a-fA-F0-9]{3,8}/g)[0].length == 12 ) {
-        this.settings.userFontSize = str.match(/<f x\d{2}/g)[0].substr(4,2);
-    } else {
-        this.settings.userFontSize = "";
-    }  
+    ( str.match(/<n\w{3,6}\/>/gi) === null ) ? 
+        this.settings.usernameColor = "" : 
+        this.settings.usernameColor = str.match(/<n\w{3,6}\/>/gi)[0];
     
+    this.settings.userFontSize = "";
+    this.settings.userFontFace = ""; 
+
+    if ( str.match(/<f x(\d{2})?(\w{3,6})?="(.*)">/gi) !== null) {
+        var fontstr = str.match(/<f x(\d{2})?(\w{3,6})?="(.*)">/gi)[0];
+        
+        if( fontstr.indexOf("=") == 12 || fontstr.indexOf("=") == 9 || fontstr.indexOf("=") == 6 ) {
+            this.settings.userFontSize = fontstr.substr(4,2);
+        }
+
+        this.settings.userFontFace = fontstr.substring(fontstr.indexOf("\"")+1,fontstr.length-2);
+    }
 
     this.msg.toggles = this.toggleWords(this.msg.userMessage);    
     this.msg.blendString = this.prepareToggles(this.msg.userMessage, this.msg.toggles);
@@ -745,7 +752,7 @@ function applyColors() {
     var previousColor = "";
     var colorCode = "";
     var styleOpen = "";
-    var styleClose = "";
+    var styleClose = "</f>";
 
     if(this.settings.bold) {
         styleOpen += "<b>";
