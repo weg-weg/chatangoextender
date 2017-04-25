@@ -53,6 +53,17 @@ if(document.domain == "st.chatango.com") {
                     data = cc.getData();                    
                 }
             }
+        } else if (data.match(/^blogout/gi)) {
+            // user logged out. 
+            cc.loadSettings();
+            cc.updateForm(); 
+
+            var findLoginContainer = setInterval(function() {
+                if ( $(".sdlg-main-cbdr-cpbg").length > 0 ) {                    
+                    newLoginDetection();
+                    clearInterval(findLoginContainer);                    
+                }
+            }, 500);
         }
 
         // ----------------------------------------------------------
@@ -68,8 +79,16 @@ var readyStateCheckInterval = setInterval(function() {
         // This part of the script triggers when page is done loading
         // ----------------------------------------------------------        
       
-       cc = new CC();
+        cc = new CC();
 
+        if ( !document.cookie.match(/id\.chatango\.com/gi) ) {
+            var findLoginContainer = setInterval(function() {
+                if ( $(".sdlg-main-cbdr-cpbg").length > 0 ) {
+                    newLoginDetection();
+                    clearInterval(findLoginContainer);                    
+                }
+            }, 500);
+        }
         // ----------------------------------------------------------
 
     }
@@ -102,6 +121,8 @@ function CC() {
         fixedLength: 7
     };
     this.elements = {
+        addCols : "",
+        subCols : "",
         ccButton : document.createElement("div"),
         ui : document.createElement("div"),
         iconImg : document.createElement("img"),
@@ -109,11 +130,16 @@ function CC() {
         ccForm : document.createElement("form"),
         colPickContainer: document.createElement("div"),
         fixedLengthInput: document.createElement("input"),
-        colorPickers: []
+        colorPickers: [],
+        selectMode : document.createElement("select"),
+        offButton : document.createElement("button")
     };
 
     // methods
     this.processFrame = processFrame;
+    this.saveSettings = saveSettings;
+    this.loadSettings = loadSettings;
+    this.updateForm = updateForm;
     this.getData = getData;
     this.createSettingsForm = createSettingsForm;
     this.createUI = createUI;
@@ -138,36 +164,13 @@ function CC() {
     var styleBarReady = setInterval(function() {  // wait for stylebar to be visible
         if ( document.getElementById("style-bar") != null) {
             cc.createUI();
-            cc.createSettingsForm();
-        $(".fullPicker").css( {
-            "width"  : "400px",
-            "max-height" : "350px" } );        
-        
-        $(".spPicker").css( {
-            "max-width" : "15px",
-            "max-height" : "15px",
-            "margin" : "5px",
-            "padding" : "0",
-            "border-color" : "rgb(30,30,30)"
-        });
-
+            cc.createSettingsForm();        
             clearInterval(styleBarReady);
         }
-    }, 1000);
+    }, 500);
 
     // generator code
-    if(localStorage.ccPower) {
-        this.settings.powerSwitch = localStorage.ccPower;
-    }
-    if(localStorage.ccMessageColors) {
-        this.settings.messageColors = JSON.parse(localStorage.ccMessageColors);
-    }
-    if(localStorage.ccLengthMode) {
-        this.settings.lengthMode = localStorage.ccLengthMode;
-    }
-    if(localStorage.ccFixedLength) { 
-        this.settings.fixedLength = localStorage.ccFixedLength;
-    }
+    this.loadSettings();
 
 
     $("#input-field").click(function() {
@@ -256,6 +259,127 @@ function processFrame(str) {
     }
 }
 
+function saveSettings() {
+    
+    var settings = {
+        ccSettingsVersion: 1,
+        ccPower: this.settings.powerSwitch,
+        ccMessageColors: this.settings.messageColors,
+        ccEffectMode: this.settings.effectMode,
+        ccLengthMode: this.settings.lengthMode,
+        ccFixedLength: this.settings.fixedLength,
+        ccAtNameColor: this.settings.atNameColor,
+        ccUrlColor: this.settings.urlColor
+    }
+
+    var idMatch = document.cookie.match(/id\.chatango\.com=([^;]+)/gi);
+    if(idMatch !== null) {
+        var username = idMatch[0].substring(idMatch[0].indexOf("=")+1);        
+    } else {
+        var username = "anon";
+    }
+    localStorage.setItem("ccSettings."+username,JSON.stringify(settings));
+}
+
+function loadSettings() {
+
+    var idMatch = document.cookie.match(/id\.chatango\.com=([^;]+)/gi);
+    if(idMatch !== null) {
+        var username = idMatch[0].substring(idMatch[0].indexOf("=")+1);        
+    } else {
+        var username = "anon";
+    }
+    if( !localStorage.getItem("ccSettings."+username) ) {
+        
+        if(localStorage.ccMessageColors || localStorage.ccPower || localStorage.ccFixedLength || localStorage.ccLengthMode ) {
+            console.log("migration");
+            var settings = {};
+            this.settings.messageColors = JSON.parse(localStorage.ccMessageColors);
+            this.settings.powerSwitch = localStorage.ccPower;
+            this.settings.fixedLength = localStorage.ccFixedLength;
+            this.settings.lengthMode = localStorage.ccLengthMode;
+            localStorage.removeItem("ccMessageColors");
+            localStorage.removeItem("ccPower");
+            localStorage.removeItem("ccFixedLength");
+            localStorage.removeItem("ccLengthMode");
+            
+        }
+        this.saveSettings(); 
+        return;                
+    } else { 
+        var settings = JSON.parse(localStorage.getItem("ccSettings."+username));
+        this.settings.powerSwitch = settings.ccPower,
+        this.settings.messageColors = settings.ccMessageColors,
+        this.settings.effectMode = settings.ccEffectMode,
+        this.settings.lengthMode = settings.ccLengthMode,
+        this.settings.fixedLength = settings.ccFixedLength,
+        this.settings.atNameColor = settings.ccAtNameColor,
+        this.settings.urlColor = settings.ccUrlColor;
+    }    
+    
+    
+}
+
+function updateForm() {
+    /*
+    this.elements.offButton
+    this.elements.colorPickers[]
+    fixedLengthInput
+    selectMode
+    */
+    if($("#ccUi").length == 0) { 
+        return;
+    }
+    this.settings.powerSwitch == "on" ? 
+    (this.elements.offButton.val("on") && this.elements.offButton.css("background-color", "#00ff00")) :
+    (this.elements.offButton.val("off") && this.elements.offButton.css("background-color", "#ff0000")) ;
+
+    $("#colPickContainer").html("");
+    $(this.elements.colorPickers).remove();
+    this.elements.colorPickers = [];
+    for( var i = 0; i < this.settings.messageColors.length; i++) {
+        var colPickWrapper = $(document.createElement("div"));
+        var colPicker = $(document.createElement("input"));
+
+        this.elements.colorPickers.push(colPickWrapper);
+
+        colPickWrapper.attr( { "id":"cW"+i, "class":"cWrapper" }).css("display","inline");
+        colPicker.attr( {
+            "id" : "c"+i,
+            "class" : "picker",
+            "type" : "color",
+            "name" : "c"+i,
+            "value" : this.settings.messageColors[i] } )        
+        .appendTo(colPickWrapper);
+
+        $("#colPickContainer").append( colPickWrapper );
+        this.initSpectrum(colPicker, colPickWrapper);
+    }
+
+    $(".fullPicker").css( {
+        "width"  : "400px",
+        "max-height" : "350px",
+        "left" : "-300px" } );        
+        
+    $(".spPicker").css( {
+        "max-width" : "15px",
+        "max-height" : "15px",
+        "margin" : "5px",
+        "padding" : "0",
+        "border-color" : "rgb(30,30,30)"
+    });
+
+    this.elements.fixedLengthInput.val(this.settings.fixedLength);
+    this.elements.selectMode.val(this.settings.lengthMode);
+    if ( this.settings.lengthMode == "fixed" ) { 
+        this.elements.fixedLengthInput.show(); 
+    } else {
+        this.elements.fixedLengthInput.hide();
+    }
+
+
+}
+
 function words() {
     return this.msg.wData.words;
 }
@@ -273,17 +397,18 @@ function createSettingsForm() {
         })
         .attr( "value", (this.settings.powerSwitch == "on") ? "on" : "off" )
         .html( "\u23FC" )
-        .click(function(){
+        .click( function() {
             if(this.value == "on") {
                 $(event.target).css("background-color", "#ff0000").attr("value", "off");
-                localStorage.ccPower = "off";
-                cc.settings.powerSwitch = "off";
+                cc.settings.powerSwitch = "off";                
             } else {
                 cc.settings.powerSwitch = "on";
-                localStorage.ccPower = "on";
-                $(event.target).css("background-color", "#00ff00").attr("value", "on");
-            }  })
+                $(event.target).css("background-color", "#00ff00").attr("value", "on");                
+            }
+            cc.saveSettings();  
+        } )
         .appendTo(this.elements.ui);
+    this.elements.offButton = offButton;
 
     this.elements.colorControls.id = "colorControls";
     this.elements.colorControls.style.width = "100%";
@@ -321,7 +446,6 @@ function createSettingsForm() {
     .appendTo(this.elements.colorControls)    
 
     .click( function() {  // Function to subtract the color from the settings 
-        
         if( cc.settings.messageColors.length == 2 ) {
             $("#sub").hide();
         } else if( cc.elements.colorPickers.length == 14 ) {
@@ -331,7 +455,7 @@ function createSettingsForm() {
         oldColorPickerElements.push( $( cc.elements.colorPickers.pop() ).detach() );
         oldColors.push( cc.settings.messageColors.pop() );
         
-        localStorage.ccMessageColors = JSON.stringify( cc.settings.messageColors );
+        cc.saveSettings();
     } );  // Function End
 
     var addCols = $(document.createElement("div"))
@@ -375,8 +499,6 @@ function createSettingsForm() {
             
             cc.initSpectrum( newPicker , newPickWrapper );
         }
-
-        localStorage.ccMessageColors = JSON.stringify(cc.settings.messageColors);
         $(".fullPicker").css("max-width","250px");
         $(".spPicker").css( {
             "max-width" : "15px",
@@ -385,6 +507,7 @@ function createSettingsForm() {
             "padding" : "0",
             "border-color" : "rgb(30,30,30)" 
         });
+        cc.saveSettings();
     } );
 
     
@@ -441,18 +564,17 @@ function createSettingsForm() {
         .append($("<option>").attr("value","full").text("Full"))
         .append($("<option>").attr("value","fixed").text("Fixed"))
         .append($("<option>").attr("value","word").text("Word"))
-        .change(function() {
+        .change( function() {
             cc.settings.lengthMode = this.value;
             if ( this.value == "fixed" ) {
                 $(cc.elements.fixedLengthInput).show();
             } else { 
                 $(cc.elements.fixedLengthInput).hide();
             }
-            localStorage.ccLengthMode = this.value;
+            cc.saveSettings();
         } )
         .val(this.settings.lengthMode)
-        .appendTo(selectWrapper);
-
+        .appendTo(selectWrapper);    
 
     var fixedLengthInput = $(this.elements.fixedLengthInput)
         .attr({
@@ -464,17 +586,32 @@ function createSettingsForm() {
         .css({ 
             "display" : "inline",
             "margin" : "0 0 0 4px" })
-        .change(function() {
+        .change( function() {
             var length = parseInt(this.value);
             if( length > 2800 ) { length = 2800; }
             else if( length < 2 ) { length = 2}
             cc.settings.fixedLength = length;
-            localStorage.ccFixedLength = length;
+            cc.saveSettings();
         })
         .appendTo(modeControlContainer);
     fixedLengthInput.ForceNumericOnly();
     if(this.settings.lengthMode != "fixed") { fixedLengthInput.hide(); }
+    this.elements.selectMode = selectMode;
+    this.elements.fixedLengthInput = fixedLengthInput;
     
+    $(".fullPicker").css( {
+        "width"  : "400px",
+        "max-height" : "350px",
+        "left" : "-300px" } );        
+        
+    $(".spPicker").css( {
+        "max-width" : "15px",
+        "max-height" : "15px",
+        "margin" : "5px",
+        "padding" : "0",
+        "border-color" : "rgb(30,30,30)"
+    });
+
 } // end of createSettingsForm method
 
 function createUI() {    
@@ -494,7 +631,7 @@ function createUI() {
     };  };        
     var sb = document.getElementById("style-bar");            
     sb.insertBefore(this.elements.ccButton, sb.firstChild); 
-
+    $(this.elements.ui).attr("id","ccUi");
     // Stylize the control box
     var sty = this.elements.ui.style;
     sty.backgroundColor = "rgba(255,255,255,.9)",
@@ -548,10 +685,9 @@ function initSpectrum(input, wrapper) {
         clickoutFiresChange: false,
         change: function(color) {
             //event.target.parent().css("background-color", color) ;           
-            if( $(event.target).closest(".cWrapper")[0] ) {
-                
+            if( $(event.target).closest(".cWrapper")[0] ) {                
                 cc.settings.messageColors[$(event.target).closest(".cWrapper")[0].id.substr(2,$(event.target).closest(".cWrapper")[0].id.length-2)] = color.toHexString();
-                localStorage.ccMessageColors = JSON.stringify(cc.settings.messageColors);
+                cc.saveSettings();
 
             }
         }
@@ -667,6 +803,10 @@ function prepareToggles(str, toggles) {
             this.msg.tWords[i] = words[i];
             preparedStr += "~ ";
         } else if ( toggles[i] == "emoticon" ) {
+            if(words[i] == "><>") {
+                words[i] = "&gt;&lt;&gt;"
+                if(i == words.length-1) { words[i] += " "; }
+            }
             this.msg.tWords[i] = words[i];
             preparedStr += "~ ";
         } else {
@@ -674,7 +814,7 @@ function prepareToggles(str, toggles) {
         }
     }
 
-    return preparedStr;
+    return preparedStr.trim();
 }
 
 function blendWords(str) {
@@ -685,9 +825,11 @@ function blendWords(str) {
     var fnColorCodes = [];
     for( var wi = 0; wi < blendWords.length; wi++ ) {
         for( var ci = 0; ci < blendWords[wi].length; ci++) {
-            fnColorCodes.push( this.rgb2hex( intFunc( ci/blendWords[wi].length )));
+            var intP = ci/blendWords[wi].length;
+            if( ci == blendWords[wi].length-1 ) { intP = 1; }
+            fnColorCodes.push( this.rgb2hex( intFunc( intP )));
         }
-        fnColorCodes.push( this.rgb2hex( intFunc( ci/blendWords[wi].length )));
+        fnColorCodes.push("");
     }
     this.msg.colorCodes = fnColorCodes;
 }
@@ -701,7 +843,9 @@ function blendFixed(str) {
 
     for( var ci = 0; ci < loops; ci++ ) {
         for( var fi = 0; fi < this.settings.fixedLength; fi++) {
-            fnColorCodes.push( this.rgb2hex( intFunc( fi/this.settings.fixedLength )));
+            var intP = fi/this.settings.fixedLength;
+            if( fi == this.settings.fixedLength-1 ) { intP = 1; }
+            fnColorCodes.push( this.rgb2hex( intFunc( intP )));
             if(fnColorCodes.length == blendString.length ) { break; }
         }
     }
@@ -718,8 +862,9 @@ function blendFull(str) {
     var fnColorCodes = [];
 
     for( var ci = 0; ci < blendString.length; ci++ ) {
-        if( ci+1 == blendString.length ) ci++;        
-        fnColorCodes.push( this.rgb2hex(intFunc( ci/blendString.length )) );
+        var intP = ci/blendString.length;
+        if( ci == blendString.length-1 ) { intP = 1; }
+        fnColorCodes.push( this.rgb2hex(intFunc( intP )) );
     } 
     this.msg.colorCodes = fnColorCodes;  
 }
@@ -842,7 +987,8 @@ function ice() {
 var cc;
 window.onload = function() {
     if (window.jQuery) {  
-        // jQuery is loaded  
+        // jQuery is loaded
+
         jQuery.fn.ForceNumericOnly =
         function() {
             return this.each(function()
@@ -865,11 +1011,40 @@ window.onload = function() {
             });
         };
 
+        $("#LOGIN").click( newLoginDetection );
 
     } else {
-        // jQuery is not loaded
-        
+        // jQuery is not loaded        
     }
 }
 
+// utility functions 
+var called = false;
+function newLoginDetection() {      
+    // This function fires when the login panel is brought up
+    if( called ) {
+        return;
+    }
+    called = true;
+    var loginCheck = setInterval(function() {
+        /*var nIdMatch = document.cookie.match(/id\.chatango\.com=([^;]+)/gi);
+        if(nIdMatch !== null) {
+            // if a cookie is set then a new login has been done
+            
+            cc.loadSettings();
+            cc.updateForm();
+            clearInterval(loginCheck);
+        } else */
 
+        if( $("#buttons-wrapper").length == 0 ) {  
+            // the panel closed, so load user settings            
+            cc.loadSettings();
+            cc.updateForm();
+            clearInterval(loginCheck);
+            called = false;
+        } else {
+            //console.log("no cookie but panel is open"); 
+
+        } 
+    }, 1000);
+}
