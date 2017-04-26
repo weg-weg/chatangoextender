@@ -55,15 +55,16 @@ if(document.domain == "st.chatango.com") {
             }
         } else if (data.match(/^blogout/gi)) {
             // user logged out. 
-            cc.loadSettings();
-            cc.updateForm(); 
-
-            var findLoginContainer = setInterval(function() {
-                if ( $(".sdlg-main-cbdr-cpbg").length > 0 ) {                    
-                    newLoginDetection();
-                    clearInterval(findLoginContainer);                    
-                }
-            }, 500);
+            setTimeout(function(){
+                cc.loadSettings();
+                cc.updateForm();
+                var findLoginContainer = setInterval(function() {
+                    if ( $(".sdlg-main-cbdr-cpbg").length > 0 ) {                    
+                        newLoginDetection();
+                        clearInterval(findLoginContainer);                    
+                    }
+                }, 500); 
+            },500);
         }
 
         // ----------------------------------------------------------
@@ -72,7 +73,7 @@ if(document.domain == "st.chatango.com") {
 })(); }
 
 var readyStateCheckInterval = setInterval(function() {
-    if (document.readyState === "complete") {
+    if (document.readyState === "complete" && window.jQuery) {
         clearInterval(readyStateCheckInterval);
         
         // ----------------------------------------------------------
@@ -82,6 +83,7 @@ var readyStateCheckInterval = setInterval(function() {
         cc = new CC();
 
         if ( !document.cookie.match(/id\.chatango\.com/gi) ) {
+
             var findLoginContainer = setInterval(function() {
                 if ( $(".sdlg-main-cbdr-cpbg").length > 0 ) {
                     newLoginDetection();
@@ -113,8 +115,11 @@ function CC() {
         messageColors: [ "#FF0000","#00FF00","#00FFFF","#0000FF","#FF0000","#00FF00","#00FFFF","#0000FF"], //,"#FF0000","#00FF00","#00FFFF","#0000FF","#FF0000","#00FF00" ],
         lengthMode: "full",  // length modes: full*, word, fixed
         effectMode: "RGB", // interpolate through RGB, HSV, longest path, soft or hard random
+        blendName: "off",
         atNameColor: "",
+        atNameColorToggle: "off",
         urlColor: "",
+        urlColorToggle: "off",
         usernameColor: "",
         userFontSize: "",
         userFontFace: "",
@@ -131,8 +136,13 @@ function CC() {
         colPickContainer: document.createElement("div"),
         fixedLengthInput: document.createElement("input"),
         colorPickers: [],
-        selectMode : document.createElement("select"),
-        offButton : document.createElement("button")
+        lengthModeSelect : document.createElement("select"),
+        offButton : document.createElement("button"),
+        blendNameToggle: document.createElement("input"),
+        atNameColorToggle: document.createElement("input"),
+        urlColorToggle: document.createElement("input"),
+        atNameColorPicker: document.createElement("input"),
+        urlColorPicker: document.createElement("input")
     };
 
     // methods
@@ -141,6 +151,13 @@ function CC() {
     this.loadSettings = loadSettings;
     this.updateForm = updateForm;
     this.getData = getData;
+    this.createPowerSwitch = createPowerSwitch;
+    this.createColorPickers = createColorPickers;
+    this.createLengthModeSelect = createLengthModeSelect;
+    this.createFixedLengthInput = createFixedLengthInput; 
+    this.createBlendNameToggle = createBlendNameToggle; 
+    this.createAtNameColorPicker = createAtNameColorPicker; 
+    this.createUrlColorPicker = createUrlColorPicker; 
     this.createSettingsForm = createSettingsForm;
     this.createUI = createUI;
     this.initSpectrum = initSpectrum;
@@ -162,12 +179,13 @@ function CC() {
     this.hex2rgb = hex2rgb;
 
     var styleBarReady = setInterval(function() {  // wait for stylebar to be visible
-        if ( document.getElementById("style-bar") != null) {
-            cc.createUI();
-            cc.createSettingsForm();        
+        if ( document.getElementById("style-bar") != null && window.jQuery) {
+            
+            arguments[0].createUI();
+            arguments[0].createSettingsForm();        
             clearInterval(styleBarReady);
         }
-    }, 500);
+    }, 500, this);
 
     // generator code
     this.loadSettings();
@@ -269,7 +287,10 @@ function saveSettings() {
         ccLengthMode: this.settings.lengthMode,
         ccFixedLength: this.settings.fixedLength,
         ccAtNameColor: this.settings.atNameColor,
-        ccUrlColor: this.settings.urlColor
+        ccAtNameToggle: this.settings.atNameColorToggle,
+        ccUrlColor: this.settings.urlColor,
+        ccUrlToggle: this.settings.urlColorToggle,
+        ccBlendName: this.settings.blendName
     }
 
     var idMatch = document.cookie.match(/id\.chatango\.com=([^;]+)/gi);
@@ -314,7 +335,11 @@ function loadSettings() {
         this.settings.lengthMode = settings.ccLengthMode,
         this.settings.fixedLength = settings.ccFixedLength,
         this.settings.atNameColor = settings.ccAtNameColor,
-        this.settings.urlColor = settings.ccUrlColor;
+        this.settings.urlColor = settings.ccUrlColor,
+        this.settings.atNameColorToggle = settings.ccAtNameToggle,
+        this.settings.urlColorToggle = settings.ccUrlToggle,
+        this.settings.blendName = settings.ccBlendName;
+
     }    
     
     
@@ -327,12 +352,13 @@ function updateForm() {
     fixedLengthInput
     selectMode
     */
+    var offButton = $(this.elements.offButton);
     if($("#ccUi").length == 0) { 
         return;
     }
     this.settings.powerSwitch == "on" ? 
-    (this.elements.offButton.val("on") && this.elements.offButton.css("background-color", "#00ff00")) :
-    (this.elements.offButton.val("off") && this.elements.offButton.css("background-color", "#ff0000")) ;
+    (offButton.val("on") && offButton.css("background-color", "#00ff00")) :
+    (offButton.val("off") && offButton.css("background-color", "#ff0000")) ;
 
     $("#colPickContainer").html("");
     $(this.elements.colorPickers).remove();
@@ -369,12 +395,34 @@ function updateForm() {
         "border-color" : "rgb(30,30,30)"
     });
 
-    this.elements.fixedLengthInput.val(this.settings.fixedLength);
-    this.elements.selectMode.val(this.settings.lengthMode);
+    $(this.elements.fixedLengthInput).val(this.settings.fixedLength);
+    $(this.elements.selectMode).val(this.settings.lengthMode);
     if ( this.settings.lengthMode == "fixed" ) { 
-        this.elements.fixedLengthInput.show(); 
+        $(this.elements.fixedLengthInput).show(); 
     } else {
-        this.elements.fixedLengthInput.hide();
+        $(this.elements.fixedLengthInput).hide();
+    }
+
+
+    if( this.settings.blendName == "off" && this.elements.blendNameToggle.checked ) {
+        this.elements.blendNameToggle.checked = false;
+    } else if ( this.settings.blendName == "on" && !this.elements.blendNameToggle.checked ) { 
+        this.elements.blendNameToggle.checked = true;
+    }
+
+    console.log(this.settings.atNameColorToggle);
+    $(this.elements.atNameColorPicker).spectrum("set",this.settings.atNameColor);
+    if( this.settings.atNameColorToggle == "off" && this.elements.atNameColorToggle.checked ) {
+        this.elements.atNameColorToggle.checked = false;
+    } else if ( this.settings.atNameColorToggle == "on" && !this.elements.atNameColorToggle.checked ) { 
+        this.elements.atNameColorToggle.checked = true;
+    }
+    console.log(this.settings.urlColorToggle);
+    $(this.elements.urlColorPicker).spectrum("set",this.settings.urlColor);
+    if( this.settings.urlColorToggle == "off" && this.elements.urlColorToggle.checked ) {
+        this.elements.urlColorToggle.checked = false;
+    } else if ( this.settings.urlColorToggle == "on" && !this.elements.urlColorToggle.checked ) { 
+        this.elements.urlColorToggle.checked = true;
     }
 
 
@@ -385,51 +433,57 @@ function words() {
 }
 
 function getData() {    
-    return this.msg.header + this.settings.usernameColor + this.msg.styled + "\n"; 
+    return this.msg.header +this.msg.styled + "\n"; 
 }
 
-function createSettingsForm() {
-
-    var offButton = $(document.createElement("button"))
+function createPowerSwitch() {
+    var offButton = $(this.elements.offButton)
         .css({
             "margin": "3px",
             "background-color" : (this.settings.powerSwitch == "on") ? "#00ff00" : "#ff0000"            
         })
         .attr( "value", (this.settings.powerSwitch == "on") ? "on" : "off" )
         .html( "\u23FC" )
-        .click( function() {
+        .on("click",null,{ ccObj: this}, function(e) {
+            
             if(this.value == "on") {
-                $(event.target).css("background-color", "#ff0000").attr("value", "off");
-                cc.settings.powerSwitch = "off";                
+                $(e.target).css("background-color", "#ff0000").attr("value", "off");
+                e.data.ccObj.settings.powerSwitch = "off";                
             } else {
-                cc.settings.powerSwitch = "on";
-                $(event.target).css("background-color", "#00ff00").attr("value", "on");                
+                e.data.ccObj.settings.powerSwitch = "on";
+                $(e.target).css("background-color", "#00ff00").attr("value", "on");                
             }
-            cc.saveSettings();  
+            e.data.ccObj.saveSettings();  
         } )
         .appendTo(this.elements.ui);
-    this.elements.offButton = offButton;
+}
 
-    this.elements.colorControls.id = "colorControls";
-    this.elements.colorControls.style.width = "100%";
-    //this.elements.colorControls.style.height = "70px";
-    this.elements.colorControls.style.padding = "0 0 3px 0";
-    this.elements.colorControls.style.borderWidth = "0 0 1px 0"
-    this.elements.colorControls.style.borderStyle = "solid";
-    this.elements.colorControls.style.borderColor = "rgb(150,150,150)";
+function createColorPickers() {
+    var colorControls = $(this.elements.colorControls)
+        .attr({
+            "id" : "colorControls"
+        })
+        .css({
+            "width" : "100%",
+            "padding": "0 0 3px 0",
+            "border-width": "0 0 1px 0",
+            "border-style": "solid",
+            "border-color" : "rgb(150,150,150)"
+        });
 
-    var colorTitle = document.createElement("h2");
-    colorTitle.textContent = "Color Selection";
-    colorTitle.style.fontSize = "1em";
-    colorTitle.style.display = "inline";
-    colorTitle.style.margin = "5px 0 2px 0";
-    colorTitle.style.padding = "0";
-    this.elements.colorControls.append(colorTitle);
+    var colorTitle = $("<p>")
+        .html("Color Selection")
+        .css({
+            "font-size" : "1em",
+            "display" : "inline",
+            "margin" : "5px 0 2px 0",
+            "padding" : "0"
+        })
+        .appendTo(this.elements.colorControls);
 
     var oldColorPickerElements = [];
     var oldColorPickersId = [];
     var oldColors = [];
-
 
     // Button to remove a color from the settings
     var subCols = $(document.createElement("div"))
@@ -445,17 +499,17 @@ function createSettingsForm() {
     .text("-")
     .appendTo(this.elements.colorControls)    
 
-    .click( function() {  // Function to subtract the color from the settings 
-        if( cc.settings.messageColors.length == 2 ) {
+    .on("click",{ccObj:this}, function(e) {  // Function to subtract the color from the settings 
+        if( e.data.ccObj.settings.messageColors.length == 2 ) {
             $("#sub").hide();
-        } else if( cc.elements.colorPickers.length == 14 ) {
+        } else if( e.data.ccObj.elements.colorPickers.length == 14 ) {
             $("#add").show();
         }
         
-        oldColorPickerElements.push( $( cc.elements.colorPickers.pop() ).detach() );
-        oldColors.push( cc.settings.messageColors.pop() );
+        oldColorPickerElements.push( $( e.data.ccObj.elements.colorPickers.pop() ).detach() );
+        oldColors.push( e.data.ccObj.settings.messageColors.pop() );
         
-        cc.saveSettings();
+        e.data.ccObj.saveSettings();
     } );  // Function End
 
     var addCols = $(document.createElement("div"))
@@ -468,18 +522,18 @@ function createSettingsForm() {
         "line-height" : ".5" } )
     .text("+")
     .appendTo(this.elements.colorControls)
-    .click ( function() {
-        if( cc.settings.messageColors.length == 1 ){
+    .on("click",{ccObj:this} , function(e) {
+        if( e.data.ccObj.settings.messageColors.length == 1 ){
             $("#sub").show();
-        } else if( cc.elements.colorPickers.length == 13 ) {
+        } else if( e.data.ccObj.elements.colorPickers.length == 13 ) {
             $("#add").hide();
         }  
         if( oldColors.length > 0 ) {            
-            cc.elements.colorPickers.push( oldColorPickerElements.pop().appendTo(cc.elements.colPickContainer) );
-            cc.settings.messageColors.push( oldColors.pop() );
+            e.data.ccObj.elements.colorPickers.push( oldColorPickerElements.pop().appendTo(e.data.ccObj.elements.colPickContainer) );
+            e.data.ccObj.settings.messageColors.push( oldColors.pop() );
         } else {
-            var newI = cc.settings.messageColors.length;
-            var newPickWrapper = $(document.createElement("div")).attr( { "id":"cW"+cc.settings.messageColors.length, "class":"cWrapper"} ).css("display","inline");
+            var newI = e.data.ccObj.settings.messageColors.length;
+            var newPickWrapper = $(document.createElement("div")).attr( { "id":"cW"+ e.data.ccObj.settings.messageColors.length, "class":"cWrapper"} ).css("display","inline");
             var newPicker = $( document.createElement("input") )
             .attr( {
                 "id" : "c"+newI,
@@ -493,11 +547,11 @@ function createSettingsForm() {
             //     localStorage.ccMessageColors = JSON.stringify(cc.settings.messageColors); } )
             .appendTo(newPickWrapper);
             
-            cc.settings.messageColors.push("#00FF00");
-            $( cc.elements.colPickContainer ).append( newPickWrapper );
-            cc.elements.colorPickers.push( newPickWrapper );
+            e.data.ccObj.settings.messageColors.push("#00FF00");
+            $( e.data.ccObj.elements.colPickContainer ).append( newPickWrapper );
+            e.data.ccObj.elements.colorPickers.push( newPickWrapper );
             
-            cc.initSpectrum( newPicker , newPickWrapper );
+            e.data.ccObj.initSpectrum( newPicker , newPickWrapper );
         }
         $(".fullPicker").css("max-width","250px");
         $(".spPicker").css( {
@@ -507,7 +561,7 @@ function createSettingsForm() {
             "padding" : "0",
             "border-color" : "rgb(30,30,30)" 
         });
-        cc.saveSettings();
+        e.data.ccObj.saveSettings();
     } );
 
     
@@ -544,12 +598,27 @@ function createSettingsForm() {
         colPickContainer.append( colPickWrapper );
         this.initSpectrum(colPicker, colPickWrapper);
     }
+    
+    
+    $(".fullPicker").css("max-width","250px");
+    $(".spPicker").css( {
+        "max-width" : "15px",
+        "max-height" : "15px",
+        "margin" : "5px",
+        "padding" : "0",
+        "border-color" : "rgb(30,30,30)" 
+    });
+}
+
+function createLengthModeSelect() {
+    var uif = $(this.elements.ccForm);
     var selectWrapper = $(document.createElement("div"));
     var modeControlContainer = $( document.createElement("div") )
         .attr("id", "modeControlContainer")
         .css( {
             "margin" : "0 0 0 0",
             "padding" : "0 0 0 0" } )
+        .html("Length Mode<br/>")
         .appendTo(uif);
 
     selectWrapper
@@ -559,103 +628,258 @@ function createSettingsForm() {
             "margin"  : "2px 0 5px 0",
             "border-width" : "3px" })
         .appendTo(modeControlContainer);
-    var selectMode = $(document.createElement("select"))
+    var lengthModeSelect = $(this.elements.lengthModeSelect)
         .attr("name","modeSelection")
         .append($("<option>").attr("value","full").text("Full"))
         .append($("<option>").attr("value","fixed").text("Fixed"))
         .append($("<option>").attr("value","word").text("Word"))
-        .change( function() {
-            cc.settings.lengthMode = this.value;
+        .on("change",{ccObj: this}, function(e) {
+            e.data.ccObj.settings.lengthMode = this.value;
             if ( this.value == "fixed" ) {
-                $(cc.elements.fixedLengthInput).show();
+                $(e.data.ccObj.elements.fixedLengthInput).show();
             } else { 
-                $(cc.elements.fixedLengthInput).hide();
+                $(e.data.ccObj.elements.fixedLengthInput).hide();
             }
-            cc.saveSettings();
+            e.data.ccObj.saveSettings();
         } )
         .val(this.settings.lengthMode)
-        .appendTo(selectWrapper);    
+        .appendTo(selectWrapper);
+}
 
+function createFixedLengthInput (fixedLength) {
+    var modeControlContainer = $("#modeControlContainer");
     var fixedLengthInput = $(this.elements.fixedLengthInput)
         .attr({
             "name" : "fixedLengthInput",
             "type" : "text",
             "id"   : "FLI",
             "size" : "4",
-            "value": this.settings.fixedLength })
+            "value": fixedLength })
         .css({ 
             "display" : "inline",
             "margin" : "0 0 0 4px" })
-        .change( function() {
+        .on("change",{ccObj : this}, function(e) {
             var length = parseInt(this.value);
-            if( length > 2800 ) { length = 2800; }
+            if( length > 1000 ) { length = 1000; }
             else if( length < 2 ) { length = 2}
-            cc.settings.fixedLength = length;
-            cc.saveSettings();
+            e.data.ccObj.settings.fixedLength = length;
+            e.data.ccObj.saveSettings();
         })
         .appendTo(modeControlContainer);
     fixedLengthInput.ForceNumericOnly();
+
     if(this.settings.lengthMode != "fixed") { fixedLengthInput.hide(); }
-    this.elements.selectMode = selectMode;
-    this.elements.fixedLengthInput = fixedLengthInput;
-    
-    $(".fullPicker").css( {
-        "width"  : "400px",
-        "max-height" : "350px",
-        "left" : "-300px" } );        
-        
+}
+
+function createBlendNameToggle() {
+    var toggleContainer = $("<div>")
+    .attr("id","bntWrapper")    
+    .appendTo(this.elements.ccForm);
+
+    $(this.elements.blendNameToggle)
+    .attr("type","checkbox")
+    .on("click",{ccObj:this}, function(e){
+        e.data.ccObj.elements.blendNameToggle.checked ?
+            e.data.ccObj.settings.blendName = "on" :
+            e.data.ccObj.settings.blendName = "off" ;
+
+        e.data.ccObj.saveSettings();
+    })
+    .appendTo(toggleContainer);
+
+    toggleContainer.append("<span> Blend Username</span>");   
+
+    this.settings.blendName == "on" ? 
+        this.elements.blendNameToggle.checked = true: 
+        this.elements.blendNameToggle.checked = false;
+}
+
+function createAtNameColorPicker() {
+
+    var atColWrapper = $(document.createElement("div")).attr("id","atColWrapper").appendTo(this.elements.ccForm);
+    $(this.elements.atNameColorToggle)
+    .attr("type","checkbox")
+    .on("click",{ccObj:this}, function(e){
+        e.data.ccObj.elements.atNameColorToggle.checked ?
+            e.data.ccObj.settings.atNameColorToggle = "on" :
+            e.data.ccObj.settings.atNameColorToggle = "off" ;
+
+            e.data.ccObj.saveSettings();
+    })
+    .appendTo(atColWrapper);
+    this.settings.atNameColorToggle == "on" ? 
+        this.elements.atNameColorToggle.checked = true: 
+        this.elements.atNameColorToggle.checked = false;
+
+    var colPicker = $(this.elements.atNameColorPicker)
+    .attr( {
+        "id" : "atC",
+        "class" : "picker",
+        "type" : "color",
+        "name" : "atC",
+        "value" : this.settings.atNameColor } )    
+    .appendTo(atColWrapper)
+    .spectrum( {
+        className: "fullPicker",
+        replacerClassName: "spPicker",
+        appendTo : atColWrapper,
+        preferredFormat: "hex",
+        selectionPalette: [],
+        palette: [
+            ["#000","#444","#666","#999","#ccc","#eee","#f3f3f3","#fff"],
+            ["#f00","#f90","#ff0","#0f0","#0ff","#00f","#90f","#f0f"],
+            ["#f4cccc","#fce5cd","#fff2cc","#d9ead3","#d0e0e3","#cfe2f3","#d9d2e9","#ead1dc"],
+            ["#ea9999","#f9cb9c","#ffe599","#b6d7a8","#a2c4c9","#9fc5e8","#b4a7d6","#d5a6bd"],
+            ["#e06666","#f6b26b","#ffd966","#93c47d","#76a5af","#6fa8dc","#8e7cc3","#c27ba0"],
+            ["#c00","#e69138","#f1c232","#6aa84f","#45818e","#3d85c6","#674ea7","#a64d79"],
+            ["#900","#b45f06","#bf9000","#38761d","#134f5c","#0b5394","#351c75","#741b47"],
+            ["#600","#783f04","#7f6000","#274e13","#0c343d","#073763","#20124d","#4c1130"]
+        ],
+        showPalette: true,
+        showInitial: true,
+        showInput: true,
+        maxSelectionSize: 8,
+        localStorageKey: "ccPalette",
+        clickoutFiresChange: false,
+        change: function(color) {
+            //event.target.parent().css("background-color", color) ;           
+            cc.settings.atNameColor = color.toHexString();
+            cc.saveSettings();
+            }
+    });
+
+    atColWrapper.append("@Name Color");
+    $(".fullPicker").css("max-width","250px");
     $(".spPicker").css( {
         "max-width" : "15px",
         "max-height" : "15px",
         "margin" : "5px",
         "padding" : "0",
-        "border-color" : "rgb(30,30,30)"
+        "border-color" : "rgb(30,30,30)" 
+    });
+    
+}
+function createUrlColorPicker() {
+    var urlColWrapper = $(document.createElement("div")).attr("id","urlColWrapper").appendTo(this.elements.ccForm);
+    $(this.elements.urlColorToggle)
+    .attr("type","checkbox")
+    .on("click",{ccObj:this}, function(e){
+
+        e.data.ccObj.elements.urlColorToggle.checked ?
+            e.data.ccObj.settings.urlColorToggle = "on" :
+            e.data.ccObj.settings.urlColorToggle = "off" ;
+
+            e.data.ccObj.saveSettings();
+    })
+    .appendTo(urlColWrapper);
+    this.settings.urlColorToggle == "on" ? 
+        this.elements.urlColorToggle.checked = true: 
+        this.elements.urlColorToggle.checked = false;
+
+    var colPicker = $(this.elements.urlColorPicker)
+    .attr( {
+        "id" : "urlC",
+        "class" : "picker",
+        "type" : "color",
+        "name" : "urlC",
+        "value" : this.settings.urlColor } )        
+    .appendTo(urlColWrapper)
+    .spectrum( {
+        className: "fullPicker",
+        replacerClassName: "spPicker",
+        appendTo : urlColWrapper,
+        preferredFormat: "hex",
+        selectionPalette: [],
+        palette: [
+            ["#000","#444","#666","#999","#ccc","#eee","#f3f3f3","#fff"],
+            ["#f00","#f90","#ff0","#0f0","#0ff","#00f","#90f","#f0f"],
+            ["#f4cccc","#fce5cd","#fff2cc","#d9ead3","#d0e0e3","#cfe2f3","#d9d2e9","#ead1dc"],
+            ["#ea9999","#f9cb9c","#ffe599","#b6d7a8","#a2c4c9","#9fc5e8","#b4a7d6","#d5a6bd"],
+            ["#e06666","#f6b26b","#ffd966","#93c47d","#76a5af","#6fa8dc","#8e7cc3","#c27ba0"],
+            ["#c00","#e69138","#f1c232","#6aa84f","#45818e","#3d85c6","#674ea7","#a64d79"],
+            ["#900","#b45f06","#bf9000","#38761d","#134f5c","#0b5394","#351c75","#741b47"],
+            ["#600","#783f04","#7f6000","#274e13","#0c343d","#073763","#20124d","#4c1130"]
+        ],
+        showPalette: true,
+        showInitial: true,
+        showInput: true,
+        maxSelectionSize: 8,
+        localStorageKey: "ccPalette",
+        clickoutFiresChange: false,
+        change: function(color) {
+            //event.target.parent().css("background-color", color) ;           
+            cc.settings.urlColor = color.toHexString();
+            cc.saveSettings();
+            }
     });
 
+    urlColWrapper.append("URL Color");
+    $(".fullPicker").css("max-width","250px");
+    $(".spPicker").css( {
+        "max-width" : "15px",
+        "max-height" : "15px",
+        "margin" : "5px",
+        "padding" : "0",
+        "border-color" : "rgb(30,30,30)" 
+    });
+}
+
+function createSettingsForm() {
+    this.createPowerSwitch();
+    this.createColorPickers();
+    this.createLengthModeSelect();
+    this.createFixedLengthInput(this.settings.fixedLength);
+    this.createBlendNameToggle();
+    this.createAtNameColorPicker();
+    this.createUrlColorPicker();
+   
 } // end of createSettingsForm method
 
 function createUI() {    
-
-    this.elements.ccButton.className = "icon",
-    this.elements.ccButton.id = "ccbutton",   
-    this.elements.iconImg.src = ccicon,
-    this.elements.ccButton.append( this.elements.iconImg );
-
-    this.elements.ccButton.onclick = function() { 
-        cc.elements.ui.style.display = "block"; 
-        document.body.onclick = function() {            
-            if (!cc.elements.ui.contains(event.target) && !cc.elements.ccButton.contains(event.target) ) {            
-                cc.elements.ui.style.display = "none";                
-                this.removeEventListener('click', arguments.callee);
+    $(this.elements.iconImg).attr("src",ccicon);
+    $(this.elements.ccButton)
+    .attr({
+        "class":"icon",
+        "id" : "ccbutton" })
+    .append(this.elements.iconImg)
+    .on("click",{ccObj:this},function(e){
+        e.data.ccObj.elements.ui.style.display = "block"; 
+        $(document.body)
+        .on("click",{ccObj: e.data.ccObj}, function(ev) {            
+            if (!ev.data.ccObj.elements.ui.contains(ev.target) && !ev.data.ccObj.elements.ccButton.contains(ev.target) ) {            
+                ev.data.ccObj.elements.ui.style.display = "none";  
+                $(this).off("click");
             }   // inject a button into chatango style bar
-    };  };        
+        });
+    });
+
+
+      
     var sb = document.getElementById("style-bar");            
     sb.insertBefore(this.elements.ccButton, sb.firstChild); 
-    $(this.elements.ui).attr("id","ccUi");
-    // Stylize the control box
-    var sty = this.elements.ui.style;
-    sty.backgroundColor = "rgba(255,255,255,.9)",
-    sty.width = "200px",
-    sty.height = "300px",
-    sty.border = "1px solid #000",
-    sty.borderRadius = "15px",
-    sty.padding = "0 10px 0 10px",
-    sty.margin = "0",
-    // sty.overflowY = "auto",
-    // sty.overflowX = "show",
-    sty.boxShadow = "2px 2px 3px #121212",
-    sty.position = "fixed",
-    sty.bottom = "140px",
-    sty.right = "120px",
-    sty.display = "none";
-    sty.userSelect = "none";
+    $(this.elements.ui)
+    .attr("id","ccUi")
+    .css({
+        "background-color": "rgba(255,255,255,.9)",
+        "width" : "200px",
+        "height" : "300px",
+        "border" : "1px solid #000" , 
+        "border-radius" : "15px" , 
+        "padding" : "0 10px 0 10px" , 
+        "margin" : "0",
+        "box-shadow": "2px 2px 3px #121212",
+        "position" : "fixed",
+        "bottom" : "140px",
+        "right" : "120px",
+        "display" : "none"
+    });
 
     // adjust position for tiny iframes
-    if(window.innerWidth < 500) {  
-        sty.right = "20px";
+    if(window.innerWidth < 500) { 
+        $(this.elements.ui).css("right","20px");
     }
     if(window.innerHeight < 500) {
-        sty.bottom = "70px";
+        $(this.elements.ui).css("bottom","70px");        
     }
     $("#OW").append(this.elements.ui);
 }
@@ -928,13 +1152,18 @@ function applyColors() {
                 nmsg += styleOpen + " " + styleClose :             
                 nmsg += " ";
         } else if ( this.msg.toggles[wi] == "atName" ) {
+            if(this.settings.atNameColorToggle=="on"){
+                colorCode = "<f x"+ this.settings.userFontSize + this.settings.atNameColor.substring(1) + "=\""+ this.settings.userFontFace +"\">";
+            }
             if ( this.msg.toggles[wi-1] == "atName" ) {
                 nmsg += this.msg.tWords[wi];
             } else {
                 nmsg += colorCode + this.msg.tWords[wi];
             }
         } else if( this.msg.toggles[wi] == "url"  ) {
-
+            if(this.settings.urlColorToggle=="on"){
+                colorCode = "<f x"+ this.settings.userFontSize + this.settings.urlColor.substring(1) + "=\""+ this.settings.userFontFace +"\">";
+            }           
             nmsg += colorCode + styleOpen + this.msg.tWords[wi] + styleClose;
 
         } else if( this.msg.tWords[wi] == "*stripes*" ) {
@@ -969,8 +1198,10 @@ function applyColors() {
         }
         previousColor = this.msg.colorCodes[bi];
     }
-
-    this.msg.styled = nmsg;
+    var userNameColor = "";
+    this.settings.blendName == "on" ?
+        userNameColor = "<n"+this.msg.colorCodes[0].substring(1)+"/>": this.settings.userNameColor;
+    this.msg.styled = userNameColor + nmsg;
     
 }
 
@@ -1036,15 +1267,17 @@ function newLoginDetection() {
             clearInterval(loginCheck);
         } else */
 
-        if( $("#buttons-wrapper").length == 0 ) {  
-            // the panel closed, so load user settings            
-            cc.loadSettings();
-            cc.updateForm();
+        if( $("#buttons-wrapper").length == 0 ) {
+            // the panel closed, so load user settings
+            setTimeout(function(){
+                cc.loadSettings();
+                cc.updateForm();
+            },500);
             clearInterval(loginCheck);
             called = false;
         } else {
-            //console.log("no cookie but panel is open"); 
+            //console.log("no cookie but panel is open");
 
-        } 
+        }
     }, 1000);
 }
