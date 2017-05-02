@@ -1200,7 +1200,7 @@ function applyColors() {
     }
     var userNameColor = "";
     this.settings.blendName == "on" ?
-        userNameColor = "<n"+this.msg.colorCodes[0].substring(1)+"/>": this.settings.userNameColor;
+        userNameColor = "<n"+this.settings.messageColors[0].substring(1)+"/>": this.settings.userNameColor;
     this.msg.styled = userNameColor + nmsg;
     
 }
