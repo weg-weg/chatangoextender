@@ -315,10 +315,10 @@ function loadSettings() {
         if(localStorage.ccMessageColors || localStorage.ccPower || localStorage.ccFixedLength || localStorage.ccLengthMode ) {
             console.log("migration");
             var settings = {};
-            this.settings.messageColors = JSON.parse(localStorage.ccMessageColors);
-            this.settings.powerSwitch = localStorage.ccPower;
-            this.settings.fixedLength = localStorage.ccFixedLength;
-            this.settings.lengthMode = localStorage.ccLengthMode;
+            localStorage.ccMessageColors ? this.settings.messageColors = JSON.parse(localStorage.ccMessageColors) : false;
+            localStorage.ccPower ? this.settings.powerSwitch = localStorage.ccPower : false;
+            localStorage.ccFixedLength ? this.settings.fixedLength = localStorage.ccFixedLength : false;
+            localStorage.ccLengthMode ? this.settings.lengthMode = localStorage.ccLengthMode : false;
             localStorage.removeItem("ccMessageColors");
             localStorage.removeItem("ccPower");
             localStorage.removeItem("ccFixedLength");
@@ -329,9 +329,20 @@ function loadSettings() {
         return;                
     } else { 
         var settings = JSON.parse(localStorage.getItem("ccSettings."+username));
-        this.settings.powerSwitch = settings.ccPower,
-        this.settings.messageColors = settings.ccMessageColors,
-        this.settings.effectMode = settings.ccEffectMode,
+        if(settings.ccPower.match(/^(on|off)$/)) {
+            this.settings.powerSwitch = settings.ccPower;
+        }
+        if(Array.isArray(settings.ccMessageColors) && 
+            settings.ccMessageColors.reduce(function(isHexRGB, str, i, arr) { 
+                if(str.match(/^#[a-fA-F0-9]{3,6}/gi) && isHexRGB) 
+                    return true;
+                else return false; 
+            }),true) {
+            this.settings.messageColors = settings.ccMessageColors;
+        } 
+        if(settings.ccEffectMode.match(/^(RGB|HSL|LONGHSL|HCL|LONGHCL|CUBEHELIX|LONGCUBEHELIX|LAB)$/) ){
+                this.settings.effectMode = settings.ccEffectMode;
+        }
         this.settings.lengthMode = settings.ccLengthMode,
         this.settings.fixedLength = settings.ccFixedLength,
         this.settings.atNameColor = settings.ccAtNameColor,
@@ -1140,7 +1151,8 @@ function applyColors() {
 
         if (( this.msg.colorCodes[bi] == previousColor ) ) {
             colorCode = "";            
-        } else { 
+        } else {
+            console.log("string index: "+bi+" string length: "+msg.length); 
             colorCode = "<f x"+ this.settings.userFontSize + this.msg.colorCodes[bi].substr(1,6) + "=\""+ this.settings.userFontFace +"\">";
         }
         if ( bi == msg.length-1 ) {
@@ -1158,7 +1170,7 @@ function applyColors() {
             if ( this.msg.toggles[wi-1] == "atName" ) {
                 nmsg += this.msg.tWords[wi];
             } else {
-                nmsg += colorCode + this.msg.tWords[wi];
+                nmsg += colorCode + styleOpen + this.msg.tWords[wi] + styleClose;
             }
         } else if( this.msg.toggles[wi] == "url"  ) {
             if(this.settings.urlColorToggle=="on"){

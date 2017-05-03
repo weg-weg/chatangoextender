@@ -1,6 +1,6 @@
 {
   "name": "Chatango Extender",
-  "version": "0.1.13",
+  "version": "0.1.14",
   "manifest_version": 2,
   "description": "Extend the Chatango HTML5 client with color effects and more", 
   "icons": {
@@ -11,7 +11,7 @@
   "default_locale": "en",
 
   "permissions": [    
-    "http://*.chatango.com/*"
+    "http://st.chatango.com/*"
   ],
   "content_scripts": [
     {
