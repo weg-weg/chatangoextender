@@ -1,17 +1,17 @@
-// chrome.extension.sendMessage({}, function(response) {
-// 	var readyStateCheckInterval = setInterval(function() {
-// 	if (document.readyState === "complete") {
-// 		clearInterval(readyStateCheckInterval);
+chrome.extension.sendMessage({}, function(response) {
+	var readyStateCheckInterval = setInterval(function() {
+	if (document.readyState === "complete") {
+		clearInterval(readyStateCheckInterval);
 
-// 		// ----------------------------------------------------------
-// 		// This part of the script triggers when page is done loading
+		// ----------------------------------------------------------
+		// This part of the script triggers when page is done loading
 
 		
-// 		// ----------------------------------------------------------
+		// ----------------------------------------------------------
 
-// 	}
-// 	}, 10);
-// });
+	}
+	}, 10);
+});
 
 if(document.domain == "st.chatango.com") {
 

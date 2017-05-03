@@ -72,6 +72,8 @@ if(document.domain == "st.chatango.com") {
     };
 })(); }
 
+// End  Code Snippet
+
 var readyStateCheckInterval = setInterval(function() {
     if (document.readyState === "complete" && window.jQuery) {
         clearInterval(readyStateCheckInterval);
@@ -329,7 +331,7 @@ function loadSettings() {
 
         this.saveSettings(); // create new settings for current user
         return; 
-                       
+
     } else { // block executes if there are settings
         var settings = JSON.parse(localStorage.getItem("ccSettings."+username));
         
@@ -345,39 +347,48 @@ function loadSettings() {
             this.settings.messageColors = settings.ccMessageColors;
         }
         for (var setting in settings) {
+            
             switch(setting) {
                 case "ccEffectMode":
                 if(settings[setting].match(/^(RGB|HSL|LONGHSL|HCL|LONGHCL|CUBEHELIX|LONGCUBEHELIX|LAB)$/) ){
                     this.settings.effectMode = settings[setting];
                 }
+                break;
                 case "ccLengthMode":
                 if(settings[setting].match(/^(full|word|fixed)$/)) {
                     this.settings.lengthMode = settings[setting];
                 }
+                break;
                 case "ccFixedLength":
-                if(settings[setting].match(/^\d{1,4}$/) && parseInt(settings.ccFixedLength) > 0 && parseInt(settings.ccFixedLength) <= 1000) {
+                if(Number.isInteger(settings[setting]) && settings.ccFixedLength > 0 && settings.ccFixedLength <= 1000) {
                     this.settings.fixedLength = settings[setting];
                 }
+                break;
                 case "ccAtNameColor":
                 if(settings[setting].match(/^#[a-fA-F0-9]{3,6}$/)) {
                     this.settings.atNameColor = settings[setting];
-                }                    
+                }
+                break;               
                 case "ccUrlColor":
                 if(settings[setting].match(/^#[a-fA-F0-9]{3,6}$/)) {
                     this.settings.urlColor = settings[setting];
-                }            
+                }     
+                break;       
                 case "ccAtNameToggle":
                 if(settings[setting].match(/^(on|off)$/)) {
                     this.settings.atNameColorToggle = settings[setting];
-                }        
+                }     
+                break;   
                 case "ccUrlToggle":
                 if(settings[setting].match(/^(on|off)$/)) {
                     this.settings.urlColorToggle = settings[setting];    
                 }
+                break;
                 case "ccBlendName":
                 if(settings[setting].match(/^(on|off)$/)) {
                     this.settings.blendName = settings[setting];
                 }
+                break;
             }
         }
     } 
