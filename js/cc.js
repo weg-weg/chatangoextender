@@ -116,11 +116,11 @@ function CC() {
         lengthMode: "full",  // length modes: full*, word, fixed
         effectMode: "RGB", // interpolate through RGB, HSV, longest path, soft or hard random
         blendName: "off",
-        atNameColor: "",
+        atNameColor: "#FF0000",
         atNameColorToggle: "off",
-        urlColor: "",
+        urlColor: "#FF0000",
         urlColorToggle: "off",
-        usernameColor: "",
+        usernameColor: "", // pulled from existing chatango settings 
         userFontSize: "",
         userFontFace: "",
         fixedLength: 7
@@ -310,8 +310,9 @@ function loadSettings() {
     } else {
         var username = "anon";
     }
-    if( !localStorage.getItem("ccSettings."+username) ) {
+    if( !localStorage.getItem("ccSettings."+username) ) { // block executes if there is no settings
         
+        // checks for older version of settings and migrates them 
         if(localStorage.ccMessageColors || localStorage.ccPower || localStorage.ccFixedLength || localStorage.ccLengthMode ) {
             console.log("migration");
             var settings = {};
@@ -325,10 +326,13 @@ function loadSettings() {
             localStorage.removeItem("ccLengthMode");
             
         }
-        this.saveSettings(); 
-        return;                
-    } else { 
+
+        this.saveSettings(); // create new settings for current user
+        return; 
+                       
+    } else { // block executes if there are settings
         var settings = JSON.parse(localStorage.getItem("ccSettings."+username));
+        
         if(settings.ccPower.match(/^(on|off)$/)) {
             this.settings.powerSwitch = settings.ccPower;
         }
@@ -339,21 +343,44 @@ function loadSettings() {
                 else return false; 
             }),true) {
             this.settings.messageColors = settings.ccMessageColors;
-        } 
-        if(settings.ccEffectMode.match(/^(RGB|HSL|LONGHSL|HCL|LONGHCL|CUBEHELIX|LONGCUBEHELIX|LAB)$/) ){
-                this.settings.effectMode = settings.ccEffectMode;
         }
-        this.settings.lengthMode = settings.ccLengthMode,
-        this.settings.fixedLength = settings.ccFixedLength,
-        this.settings.atNameColor = settings.ccAtNameColor,
-        this.settings.urlColor = settings.ccUrlColor,
-        this.settings.atNameColorToggle = settings.ccAtNameToggle,
-        this.settings.urlColorToggle = settings.ccUrlToggle,
-        this.settings.blendName = settings.ccBlendName;
-
-    }    
-    
-    
+        for (var setting in settings) {
+            switch(setting) {
+                case "ccEffectMode":
+                if(settings[setting].match(/^(RGB|HSL|LONGHSL|HCL|LONGHCL|CUBEHELIX|LONGCUBEHELIX|LAB)$/) ){
+                    this.settings.effectMode = settings[setting];
+                }
+                case "ccLengthMode":
+                if(settings[setting].match(/^(full|word|fixed)$/)) {
+                    this.settings.lengthMode = settings[setting];
+                }
+                case "ccFixedLength":
+                if(settings[setting].match(/^\d{1,4}$/) && parseInt(settings.ccFixedLength) > 0 && parseInt(settings.ccFixedLength) <= 1000) {
+                    this.settings.fixedLength = settings[setting];
+                }
+                case "ccAtNameColor":
+                if(settings[setting].match(/^#[a-fA-F0-9]{3,6}$/)) {
+                    this.settings.atNameColor = settings[setting];
+                }                    
+                case "ccUrlColor":
+                if(settings[setting].match(/^#[a-fA-F0-9]{3,6}$/)) {
+                    this.settings.urlColor = settings[setting];
+                }            
+                case "ccAtNameToggle":
+                if(settings[setting].match(/^(on|off)$/)) {
+                    this.settings.atNameColorToggle = settings[setting];
+                }        
+                case "ccUrlToggle":
+                if(settings[setting].match(/^(on|off)$/)) {
+                    this.settings.urlColorToggle = settings[setting];    
+                }
+                case "ccBlendName":
+                if(settings[setting].match(/^(on|off)$/)) {
+                    this.settings.blendName = settings[setting];
+                }
+            }
+        }
+    } 
 }
 
 function updateForm() {
@@ -421,14 +448,12 @@ function updateForm() {
         this.elements.blendNameToggle.checked = true;
     }
 
-    console.log(this.settings.atNameColorToggle);
     $(this.elements.atNameColorPicker).spectrum("set",this.settings.atNameColor);
     if( this.settings.atNameColorToggle == "off" && this.elements.atNameColorToggle.checked ) {
         this.elements.atNameColorToggle.checked = false;
     } else if ( this.settings.atNameColorToggle == "on" && !this.elements.atNameColorToggle.checked ) { 
         this.elements.atNameColorToggle.checked = true;
     }
-    console.log(this.settings.urlColorToggle);
     $(this.elements.urlColorPicker).spectrum("set",this.settings.urlColor);
     if( this.settings.urlColorToggle == "off" && this.elements.urlColorToggle.checked ) {
         this.elements.urlColorToggle.checked = false;
@@ -1152,7 +1177,6 @@ function applyColors() {
         if (( this.msg.colorCodes[bi] == previousColor ) ) {
             colorCode = "";            
         } else {
-            console.log("string index: "+bi+" string length: "+msg.length); 
             colorCode = "<f x"+ this.settings.userFontSize + this.msg.colorCodes[bi].substr(1,6) + "=\""+ this.settings.userFontFace +"\">";
         }
         if ( bi == msg.length-1 ) {
