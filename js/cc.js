@@ -328,10 +328,11 @@ function loadSettings() {
         }
 
         this.saveSettings(); // create new settings for current user
-        return;                
+        return; 
+                       
     } else { // block executes if there are settings
         var settings = JSON.parse(localStorage.getItem("ccSettings."+username));
-        console.dir(settings);
+        
         if(settings.ccPower.match(/^(on|off)$/)) {
             this.settings.powerSwitch = settings.ccPower;
         }
@@ -447,14 +448,12 @@ function updateForm() {
         this.elements.blendNameToggle.checked = true;
     }
 
-    console.log(this.settings.atNameColorToggle);
     $(this.elements.atNameColorPicker).spectrum("set",this.settings.atNameColor);
     if( this.settings.atNameColorToggle == "off" && this.elements.atNameColorToggle.checked ) {
         this.elements.atNameColorToggle.checked = false;
     } else if ( this.settings.atNameColorToggle == "on" && !this.elements.atNameColorToggle.checked ) { 
         this.elements.atNameColorToggle.checked = true;
     }
-    console.log(this.settings.urlColorToggle);
     $(this.elements.urlColorPicker).spectrum("set",this.settings.urlColor);
     if( this.settings.urlColorToggle == "off" && this.elements.urlColorToggle.checked ) {
         this.elements.urlColorToggle.checked = false;
@@ -1178,7 +1177,6 @@ function applyColors() {
         if (( this.msg.colorCodes[bi] == previousColor ) ) {
             colorCode = "";            
         } else {
-            console.log("string index: "+bi+" string length: "+msg.length); 
             colorCode = "<f x"+ this.settings.userFontSize + this.msg.colorCodes[bi].substr(1,6) + "=\""+ this.settings.userFontFace +"\">";
         }
         if ( bi == msg.length-1 ) {
