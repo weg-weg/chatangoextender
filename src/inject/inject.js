@@ -20,6 +20,11 @@ if(document.domain == "st.chatango.com") {
 	di.textContent = "var ccicon = \"" + chrome.extension.getURL("icons/icon16.png") + "\";";	
 	(document.head||document.documentElement).appendChild(di);
 	di.remove();
+
+	var ei = document.createElement('script');
+	ei.textContent = "var rtid = \"" + chrome.runtime.id + "\";";	
+	(document.head||document.documentElement).appendChild(ei);
+	ei.remove();
 	
 	
 	var jq = document.createElement('script');	

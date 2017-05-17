@@ -1,128 +1,128 @@
 <!doctype html>
 
-<style type="text/css">
-	@import url('https://fonts.googleapis.com/css?family=Roboto:300,400');
+<script  src="../../js/jquery.min.js"></script>
+<script  src="../../js/jquery.minicolors.min.js"></script>
 
-	body,html {
-		margin: 0;
-		padding: 0;
-		background-color: white;
-	}
-	#mainPopup {
-		font-family: 'Roboto', sans-serif;		
-		padding: 0;
-		margin: 0;
-		height: 350px;
-		width: 300px;
-		border-width: 1px;
-		border-style: solid;
-		border-color: black;		
-	}
-	h1 {
-		font-family: 'Roboto', sans-serif;
-		
-		margin: 0;
-		padding: 5px;		
-		display: block;
-		text-align: center;		
-		font-size: 2em;
-		font-weight: 300;
-		color: white;
-		background: #219bff;
-		background: -moz-linear-gradient(top, #219bff 0%, #219bff 69%, #97cfff 100%);
-		background: -webkit-gradient(left top, left bottom, color-stop(0%, #219bff), color-stop(69%, #219bff), color-stop(100%, #97cfff));
-		background: -webkit-linear-gradient(top, #219bff 0%, #219bff 69%, #97cfff 100%);
-		background: -o-linear-gradient(top, #219bff 0%, #219bff 69%, #97cfff 100%);
-		background: -ms-linear-gradient(top, #219bff 0%, #219bff 69%, #97cfff 100%);
-		background: linear-gradient(to bottom, #219bff 0%, #219bff 69%, #97cfff 100%);
-		filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#219bff', endColorstr='#97cfff', GradientType=0 );
-	}
 
-	.sectionTitle {
-		font-family: 'Roboto', sans-serif;
-		font-size: 1.1em;
-		font-weight: 400;
-		color: black;
-		padding: 2px;
-		padding-left: 8px;
-		margin: 0;
-		border-color: #b8b8b8;
-		border-width: 1px;
-		border-style: solid;
-		background: #ededed;
-		background: -moz-linear-gradient(left, #ededed 0%, #f6f6f6 38%, #ffffff 100%);
-		background: -webkit-gradient(left top, right top, color-stop(0%, #ededed), color-stop(38%, #f6f6f6), color-stop(100%, #ffffff));
-		background: -webkit-linear-gradient(left, #ededed 0%, #f6f6f6 38%, #ffffff 100%);
-		background: -o-linear-gradient(left, #ededed 0%, #f6f6f6 38%, #ffffff 100%);
-		background: -ms-linear-gradient(left, #ededed 0%, #f6f6f6 38%, #ffffff 100%);
-		background: linear-gradient(to right, #ededed 0%, #f6f6f6 38%, #ffffff 100%);
-		filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ededed', endColorstr='#ffffff', GradientType=1 );
-	}
-	.sectionTitle span {
-		padding: 0 5px 0 0;
-	}
-	.section { 
-		padding: 5px;
-	}
-	#colorControls input { 
-		display: inline;
-	}
-	#powerButton.on {
-		font-family: 'Roboto', sans-serif;
-		font-size: 1em;
-		font-weight: 500;
-		position: absolute;
-		bottom: 0;
-		right: 0;
-		width: 50px;
-		height: 15px;
-		padding: 5px 0 0 5px;
-		text-align: left;
-		color: white;
-		border-color: black;
-		border-width: 1px;
-		border-style: solid;
-		background: #00FF00;
-		background: -moz-linear-gradient(left, #00FF00 0%, #bfff00 100%);
-		background: -webkit-gradient(left top, right top, color-stop(0%, #00FF00), color-stop(100%, #bfff00));
-		background: -webkit-linear-gradient(left, #00FF00 0%, #bfff00 100%);
-		background: -o-linear-gradient(left, #00FF00 0%, #bfff00 100%);
-		background: -ms-linear-gradient(left, #00FF00 0%, #bfff00 100%);
-		background: linear-gradient(to right, #00FF00 0%, #bfff00 100%);
-		filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#00FF00', endColorstr='#bfff00', GradientType=1 );
-	}
-
-</style>
-
+<script  src="page_action.js"></script>
+<link rel="stylesheet" href="../../css/jquery.minicolors.css">
+<link rel="stylesheet" href="page_action.css">
 
 <div id="mainPopup">
 	<h1>
 		<span>Chatango Extender</span>
-	</h1>	
+	</h1>
+	<div class="sectionTitle">
+		<span id="previewTitle">Preview</span>
+	</div>
+	<div class="section" id="preview">
+		<span id="block01">&block;</span><span id="block02">&block;</span><span id="block03">&block;</span><span id="block04">&block;</span><span id="block05">&block;</span><span id="block06">&block;</span><span id="block07">&block;</span><span id="block08">&block;</span><span id="block09">&block;</span><span id="block10">&block;</span><span id="block11">&block;</span><span id="block12">&block;</span><span id="block13">&block;</span><span id="block14">&block;</span><span id="block15">&block;</span><span id="block16">&block;</span><span id="block17">&block;</span><span id="block18">&block;</span><span id="block19">&block;</span><span id="block20">&block;</span>
+	</div>	
 	<div class="sectionTitle">
 		<span id="colorsTitle">Color Selection</span>
 	</div>
-	<div class="section" id="colorControls">
-		<input type="color" value="#FF0000"/>
-		<input type="color" value="#FF0000"/>
-		<input type="color" value="#FF0000"/>
-		<input type="color" value="#FF0000"/>
-		<input type="color" value="#FF0000"/>
-		<input type="color" value="#FF0000"/>
-		<input type="color" value="#FF0000"/>
-		<input type="color" value="#FF0000"/>
-		<input type="color" value="#FF0000"/>
-		<input type="color" value="#FF0000"/>		
+	<div class="section" id="colorControlsContainer">
+		<div class="addSubContainer">
+			<div id="add">+</div>
+			<div id="sub">-</div>
+		</div>
+		<div class="colPickRow">
+		<div class="colorPickerContainer">
+			<input type="hidden" id="cPicker1" class="colorPicker" value="#ff00ff" size="7">
+		</div>
+		<div class="colorPickerContainer">
+			<input type="hidden" id="cPicker2" class="colorPicker" value="#ff00ff" size="7">
+		</div>
+		<div class="colorPickerContainer">
+			<input type="hidden" id="cPicker3" class="colorPicker" value="#ff00ff" size="7">
+		</div>
+		<div class="colorPickerContainer">
+			<input type="hidden" id="cPicker4" class="colorPicker" value="#ff00ff" size="7">
+		</div>
+		<div class="colorPickerContainer">
+			<input type="hidden" id="cPicker5" class="colorPicker" value="#ff00ff" size="7">
+		</div>
+		<div class="colorPickerContainer">
+			<input type="hidden" id="cPicker6" class="colorPicker" value="#ff00ff" size="7">
+		</div>
+		<div class="colorPickerContainer">
+			<input type="hidden" id="cPicker7" class="colorPicker" value="#ff00ff" size="7">
+		</div>
+		<div class="colorPickerContainer">
+			<input type="hidden" id="cPicker8" class="colorPicker" value="#ff00ff" size="7">
+		</div>
+		<div class="colorPickerContainer">
+			<input type="hidden" id="cPicker9" class="colorPicker" value="#ff00ff" size="7">
+		</div>
+		<div class="colorPickerContainer">
+			<input type="hidden" id="cPicker10" class="colorPicker" value="#ff00ff" size="7">
+		</div>
+		</div>
+		<div class="colPickRow">
+		<div class="colorPickerContainer">
+			<input type="hidden" id="cPicker11" class="colorPicker" value="#ff00ff" size="7">
+		</div>
+		<div class="colorPickerContainer">
+			<input type="hidden" id="cPicker12" class="colorPicker" value="#ff00ff" size="7">
+		</div>
+		<div class="colorPickerContainer">
+			<input type="hidden" id="cPicker13" class="colorPicker" value="#ff00ff" size="7">
+		</div>
+		<div class="colorPickerContainer">
+			<input type="hidden" id="cPicker14" class="colorPicker" value="#ff00ff" size="7">
+		</div>
+		<div class="colorPickerContainer">
+			<input type="hidden" id="cPicker15" class="colorPicker" value="#ff00ff" size="7">
+		</div>
+		<div class="colorPickerContainer">
+			<input type="hidden" id="cPicker16" class="colorPicker" value="#ff00ff" size="7">
+		</div>
+		<div class="colorPickerContainer">
+			<input type="hidden" id="cPicker17" class="colorPicker" value="#ff00ff" size="7">
+		</div>
+		<div class="colorPickerContainer">
+			<input type="hidden" id="cPicker18" class="colorPicker" value="#ff00ff" size="7">
+		</div>
+		<div class="colorPickerContainer">
+			<input type="hidden" id="cPicker19" class="colorPicker" value="#ff00ff" size="7">
+		</div>
+		<div class="colorPickerContainer">
+			<input type="hidden" id="cPicker20" class="colorPicker" value="#ff00ff" size="7">
+		</div>
+		</div>
 	</div>
+
 	<div class="sectionTitle">
 		<span id="blendTitle">Blend Mode</span>
+	</div>	
+	<div class="section" id="blendModeContainer">
+		<select id="blendModeSelect">
+			<option value="RGB">RGB BSpline</option>
+		</select>
 	</div>
 	<div class="sectionTitle">
-		<span id="lengthModeTitle">Length Mode</span><span id="fixedLengthTitle">Fixed Length</span>
+		<span id="lengthModeTitle">Length Mode</span> <span id="fixedLengthTitle">Fixed Length</span>
+	</div>
+	<div class="section" id="lengthModeContainer">
+		<span>
+			<select id="lengthModeSelect">
+				<option value="full">Full Length</option>
+				<option value="word">Per Word</option>
+				<option value="fixed">Fixed Length</option>
+			</select>
+		</span>
+		<span>
+			<input type="text" id="fixedLengthInput" size="3" maxlength="3" />
+		</span>
+
+
 	</div>
 	<div class="sectionTitle">
 		<span id="blendNameTitle">Blend Name</span><span id="atNameTitle">@Name</span><span id="urlTitle">URL</span>
 	</div>
+	<div class="section" id="togglesContainer">
+		
+	</div>
 	
-	<div id="powerButton" class="on">On</div>
+	<div id="powerButton" class="on">&#x23FB;</div>
 </div>
