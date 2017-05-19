@@ -4,9 +4,6 @@
 //     "sample_setting": "This is how you use Store.js to remember values"
 // });
 
-
-//example of using a message handler from the inject scripts
-
 chrome.extension.onMessageExternal.addListener(
 	function(request, sender, sendResponse) {
 		
@@ -26,9 +23,26 @@ chrome.extension.onMessageExternal.addListener(
 			settings.msgMaxLength = request.msgMaxLength;
 		} else if ( request.chLogOut !== undefined ) { // user logged out, load new settings 
 
-		}		
+		} 	
 	}
 );
+chrome.runtime.onMessage.addListener(
+	function(request, sender, sendResponse) {
+		if ( request.changeSetting !== undefined ) {  // change setting message
+			if(request.changeSetting.match("messageColors")) {
+				settings.messageColors[request.changeSetting.substring(13)] = request.value;
+			} else if( request.changeSetting == "add"){
+				settings.messageColors.push(request.value) ;
+			} else if( request.changeSetting == "sub"){
+				settings.messageColors.pop();
+			} else {
+				settings[request.changeSetting] = request.value;
+			}
+			sendResponse({ result: "true"});
+		} else if ( request.getSettings !== undefined ) {
+			sendResponse({ settings: settings.toString()});
+		}
+	});
 
 window.onload = function() {
     if (window.jQuery) {  
@@ -115,6 +129,7 @@ var settings = {  // set to default values
     bold : false,
     italics : false,
     underline : false,
+    // reset chatango settings
     reset:  function() {
     	this.usernameColor = "";
     	this.userFontFace = "";
@@ -122,6 +137,21 @@ var settings = {  // set to default values
     	this.bold = false;
     	this.italics = false;
     	this.underline = false;
+    },
+    // string to pass settings to page action 
+    toString: function() {
+    	return JSON.stringify({
+    		powerSwitch: settings.powerSwitch,
+		    messageColors: settings.messageColors,
+		    lengthMode: settings.lengthMode,
+		    effectMode: settings.effectMode,
+		    blendName: settings.blendName,
+		    atNameColor: settings.atNameColor,
+		    atNameColorToggle: settings.atNameColorToggle,
+		    urlColor: settings.urlColor,
+		    urlColorToggle: settings.urlColorToggle,
+		    fixedLength: settings.fixedLength
+    	});
     }
 }
 

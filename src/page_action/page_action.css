@@ -61,6 +61,8 @@ h1 {
 	position: relative;
 	display: inline-block;
 	top: 1px;
+	height: 15px;
+	width: 80%;
 	margin:0;
 	padding: 0;
 }	
@@ -105,7 +107,7 @@ h1 {
 	font-size: 1.6em;
 	color: green;
 }
-#powerButton.on {
+#powerButton {
 	font-family: 'iec_symbols_unicoderegular';
 	font-size: 1.2em;
 	position: absolute;
@@ -113,18 +115,52 @@ h1 {
 	right: 0;
 	width: 50px;
 	height: 18px;
-	padding: 4px 0 2px 12px;
-	text-align: left;
 	color: white;
 	border-color: black;
 	border-width: 1px;
-	border-style: solid;		
+	border-style: solid;
+}
+#powerButton.off {	
+	padding: 4px 12px 2px 0;
+	text-align: right;
+	background: linear-gradient(to right, #7f0000 31%,#ff0505 100%);
+}
+#powerButton.on {		
+	padding: 4px 0 2px 12px;
 	background: linear-gradient(to right, #00FF00 0%, #bfff00 100%);
 }
 #fixedLengthTitle {
 	padding-left: 15px;
 }
-#colorControlsContainer {
+#colorControls {
+	margin: 0;
+	padding: 0;
+}
+#togglesContainer {
+	padding: 2px 0 0 0;
+	margin: 0;
+	vertical-align: center;
+}
+#blendNameToggleContainer { 
+	display: inline-block;
+	padding: 0 40px 0 15px;
+}
+#blendNameTitle { 
+	padding: 0 12px 0 0;
+}
+#atNameTitle {
+	padding: 0 32px 0 0;
+}
+
+#atNameColorContainer {
+	display: inline-block;
+	margin: 0;
+	padding: 0 20px 0 0;
+}
+#atNameColorToggle { 
+}
+#urlColorContainer {
+	display: inline-block;
 	margin: 0;
 	padding: 0;
 }

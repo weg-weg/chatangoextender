@@ -12,116 +12,140 @@
 	<h1>
 		<span>Chatango Extender</span>
 	</h1>
-	<div class="sectionTitle">
-		<span id="previewTitle">Preview</span>
-	</div>
-	<div class="section" id="preview">
-		<span id="block01">&block;</span><span id="block02">&block;</span><span id="block03">&block;</span><span id="block04">&block;</span><span id="block05">&block;</span><span id="block06">&block;</span><span id="block07">&block;</span><span id="block08">&block;</span><span id="block09">&block;</span><span id="block10">&block;</span><span id="block11">&block;</span><span id="block12">&block;</span><span id="block13">&block;</span><span id="block14">&block;</span><span id="block15">&block;</span><span id="block16">&block;</span><span id="block17">&block;</span><span id="block18">&block;</span><span id="block19">&block;</span><span id="block20">&block;</span>
-	</div>	
-	<div class="sectionTitle">
-		<span id="colorsTitle">Color Selection</span>
-	</div>
-	<div class="section" id="colorControlsContainer">
-		<div class="addSubContainer">
-			<div id="add">+</div>
-			<div id="sub">-</div>
+	<div id="previewContainer">
+		<div class="sectionTitle">
+			<span id="previewTitle">Preview</span>
 		</div>
-		<div class="colPickRow">
-		<div class="colorPickerContainer">
-			<input type="hidden" id="cPicker1" class="colorPicker" value="#ff00ff" size="7">
-		</div>
-		<div class="colorPickerContainer">
-			<input type="hidden" id="cPicker2" class="colorPicker" value="#ff00ff" size="7">
-		</div>
-		<div class="colorPickerContainer">
-			<input type="hidden" id="cPicker3" class="colorPicker" value="#ff00ff" size="7">
-		</div>
-		<div class="colorPickerContainer">
-			<input type="hidden" id="cPicker4" class="colorPicker" value="#ff00ff" size="7">
-		</div>
-		<div class="colorPickerContainer">
-			<input type="hidden" id="cPicker5" class="colorPicker" value="#ff00ff" size="7">
-		</div>
-		<div class="colorPickerContainer">
-			<input type="hidden" id="cPicker6" class="colorPicker" value="#ff00ff" size="7">
-		</div>
-		<div class="colorPickerContainer">
-			<input type="hidden" id="cPicker7" class="colorPicker" value="#ff00ff" size="7">
-		</div>
-		<div class="colorPickerContainer">
-			<input type="hidden" id="cPicker8" class="colorPicker" value="#ff00ff" size="7">
-		</div>
-		<div class="colorPickerContainer">
-			<input type="hidden" id="cPicker9" class="colorPicker" value="#ff00ff" size="7">
-		</div>
-		<div class="colorPickerContainer">
-			<input type="hidden" id="cPicker10" class="colorPicker" value="#ff00ff" size="7">
-		</div>
-		</div>
-		<div class="colPickRow">
-		<div class="colorPickerContainer">
-			<input type="hidden" id="cPicker11" class="colorPicker" value="#ff00ff" size="7">
-		</div>
-		<div class="colorPickerContainer">
-			<input type="hidden" id="cPicker12" class="colorPicker" value="#ff00ff" size="7">
-		</div>
-		<div class="colorPickerContainer">
-			<input type="hidden" id="cPicker13" class="colorPicker" value="#ff00ff" size="7">
-		</div>
-		<div class="colorPickerContainer">
-			<input type="hidden" id="cPicker14" class="colorPicker" value="#ff00ff" size="7">
-		</div>
-		<div class="colorPickerContainer">
-			<input type="hidden" id="cPicker15" class="colorPicker" value="#ff00ff" size="7">
-		</div>
-		<div class="colorPickerContainer">
-			<input type="hidden" id="cPicker16" class="colorPicker" value="#ff00ff" size="7">
-		</div>
-		<div class="colorPickerContainer">
-			<input type="hidden" id="cPicker17" class="colorPicker" value="#ff00ff" size="7">
-		</div>
-		<div class="colorPickerContainer">
-			<input type="hidden" id="cPicker18" class="colorPicker" value="#ff00ff" size="7">
-		</div>
-		<div class="colorPickerContainer">
-			<input type="hidden" id="cPicker19" class="colorPicker" value="#ff00ff" size="7">
-		</div>
-		<div class="colorPickerContainer">
-			<input type="hidden" id="cPicker20" class="colorPicker" value="#ff00ff" size="7">
-		</div>
+		<div class="section" id="preview">
+			<span id="block01">&block;</span><span id="block02">&block;</span><span id="block03">&block;</span><span id="block04">&block;</span><span id="block05">&block;</span><span id="block06">&block;</span><span id="block07">&block;</span><span id="block08">&block;</span><span id="block09">&block;</span><span id="block10">&block;</span><span id="block11">&block;</span><span id="block12">&block;</span><span id="block13">&block;</span><span id="block14">&block;</span><span id="block15">&block;</span><span id="block16">&block;</span><span id="block17">&block;</span><span id="block18">&block;</span><span id="block19">&block;</span><span id="block20">&block;</span>
 		</div>
 	</div>
-
-	<div class="sectionTitle">
-		<span id="blendTitle">Blend Mode</span>
-	</div>	
-	<div class="section" id="blendModeContainer">
-		<select id="blendModeSelect">
-			<option value="RGB">RGB BSpline</option>
-		</select>
+	<div id="colorControlsContainer">
+		<div class="sectionTitle">
+			<span id="colorsTitle">Color Selection</span>
+		</div>
+		<div class="section" id="colorControls">
+			<div class="addSubContainer">
+				<div id="add">+</div>
+				<div id="sub">-</div>
+			</div>
+			<div class="colPickRow" id="row1">
+			<div class="colorPickerContainer">
+				<input type="hidden" id="cPicker1" class="colorPicker" value="#ff00ff" size="7">
+			</div>
+			<div class="colorPickerContainer">
+				<input type="hidden" id="cPicker2" class="colorPicker" value="#ff00ff" size="7">
+			</div>
+			<div class="colorPickerContainer">
+				<input type="hidden" id="cPicker3" class="colorPicker" value="#ff00ff" size="7">
+			</div>
+			<div class="colorPickerContainer">
+				<input type="hidden" id="cPicker4" class="colorPicker" value="#ff00ff" size="7">
+			</div>
+			<div class="colorPickerContainer">
+				<input type="hidden" id="cPicker5" class="colorPicker" value="#ff00ff" size="7">
+			</div>
+			<div class="colorPickerContainer">
+				<input type="hidden" id="cPicker6" class="colorPicker" value="#ff00ff" size="7">
+			</div>
+			<div class="colorPickerContainer">
+				<input type="hidden" id="cPicker7" class="colorPicker" value="#ff00ff" size="7">
+			</div>
+			<div class="colorPickerContainer">
+				<input type="hidden" id="cPicker8" class="colorPicker" value="#ff00ff" size="7">
+			</div>
+			<div class="colorPickerContainer">
+				<input type="hidden" id="cPicker9" class="colorPicker" value="#ff00ff" size="7">
+			</div>
+			<div class="colorPickerContainer">
+				<input type="hidden" id="cPicker10" class="colorPicker" value="#ff00ff" size="7">
+			</div>
+			</div>
+			<div class="colPickRow" id="row2">
+			<div class="colorPickerContainer">
+				<input type="hidden" id="cPicker11" class="colorPicker" value="#ff00ff" size="7">
+			</div>
+			<div class="colorPickerContainer">
+				<input type="hidden" id="cPicker12" class="colorPicker" value="#ff00ff" size="7">
+			</div>
+			<div class="colorPickerContainer">
+				<input type="hidden" id="cPicker13" class="colorPicker" value="#ff00ff" size="7">
+			</div>
+			<div class="colorPickerContainer">
+				<input type="hidden" id="cPicker14" class="colorPicker" value="#ff00ff" size="7">
+			</div>
+			<div class="colorPickerContainer">
+				<input type="hidden" id="cPicker15" class="colorPicker" value="#ff00ff" size="7">
+			</div>
+			<div class="colorPickerContainer">
+				<input type="hidden" id="cPicker16" class="colorPicker" value="#ff00ff" size="7">
+			</div>
+			<div class="colorPickerContainer">
+				<input type="hidden" id="cPicker17" class="colorPicker" value="#ff00ff" size="7">
+			</div>
+			<div class="colorPickerContainer">
+				<input type="hidden" id="cPicker18" class="colorPicker" value="#ff00ff" size="7">
+			</div>
+			<div class="colorPickerContainer">
+				<input type="hidden" id="cPicker19" class="colorPicker" value="#ff00ff" size="7">
+			</div>
+			<div class="colorPickerContainer">
+				<input type="hidden" id="cPicker20" class="colorPicker" value="#ff00ff" size="7">
+			</div>
+			</div>
+		</div>
 	</div>
-	<div class="sectionTitle">
-		<span id="lengthModeTitle">Length Mode</span> <span id="fixedLengthTitle">Fixed Length</span>
-	</div>
-	<div class="section" id="lengthModeContainer">
-		<span>
-			<select id="lengthModeSelect">
-				<option value="full">Full Length</option>
-				<option value="word">Per Word</option>
-				<option value="fixed">Fixed Length</option>
+	<div id="blendModeContainer">
+		<div class="sectionTitle">
+			<span id="blendTitle">Blend Mode</span>
+		</div>	
+		<div class="section" id="blendMode">
+			<select id="blendModeSelect">
+				<option value="RGB">RGB BSpline</option>
 			</select>
-		</span>
-		<span>
-			<input type="text" id="fixedLengthInput" size="3" maxlength="3" />
-		</span>
+		</div>
+	</div>
+	<div id="lengthModeContainer">
+		<div class="sectionTitle">
+			<span id="lengthModeTitle">Length Mode</span> <span id="fixedLengthTitle">Fixed Length</span>
+		</div>
+		<div class="section" id="lengthMode">
+			<span>
+				<select id="lengthModeSelect">
+					<option value="full">Full Length</option>
+					<option value="word">Per Word</option>
+					<option value="fixed">Fixed Length</option>
+				</select>
+			</span>
+			<span>
+				<input type="text" id="fixedLengthInput" size="3" maxlength="3" />
+			</span>
 
 
+		</div>
 	</div>
 	<div class="sectionTitle">
 		<span id="blendNameTitle">Blend Name</span><span id="atNameTitle">@Name</span><span id="urlTitle">URL</span>
 	</div>
 	<div class="section" id="togglesContainer">
-		
+		<div id="blendNameToggleContainer">
+			<input type="checkbox" id="blendNameToggle" value="1">
+		</div>
+		<div id="atNameColorContainer">
+			<input type="checkbox" id="atNameColorToggle">
+			<div class="colorPickerContainer">
+				<input type="hidden" id="atNameColorPicker" class="colorPicker" value="#ff00ff" size="7">
+			</div>
+		</div>
+		<div id="urlColorContainer">
+			<input type="checkbox" id="urlColorToggle">
+			<div class="colorPickerContainer">
+				<input type="hidden" id="urlColorPicker" class="colorPicker" value="#ff00ff" size="7">
+			</div>
+		</div>
+
+		<div></div>
+		<div></div>
 	</div>
 	
 	<div id="powerButton" class="on">&#x23FB;</div>
