@@ -88,6 +88,7 @@ h1 {
 	font-size: 1.5em;
 	font-weight: 500;
 	margin: 1px 10px 0 10px;
+	user-select: none;
 }
 #sub {		
 	padding-left: 2px;
@@ -119,6 +120,7 @@ h1 {
 	border-color: black;
 	border-width: 1px;
 	border-style: solid;
+	user-select: none;
 }
 #powerButton.off {	
 	padding: 4px 12px 2px 0;

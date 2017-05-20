@@ -5,13 +5,11 @@
 // });
 
 chrome.extension.onMessageExternal.addListener(
-	function(request, sender, sendResponse) {
-		
-		if( request.greeting !== undefined ) { // page loaded			 			
+	function(request, sender, sendResponse) {		
+		if ( request.loadSuccess !== undefined ) {
 			chrome.pageAction.show(sender.tab.id);
-			sendResponse({ ceLoad : "true" });		
-		} else if( request.chMsg !== undefined ) { // user sent message 
-			
+			sendResponse({ result: "true"});
+		} else if( request.chMsg !== undefined ) { // user sent message 			
 			////////////////
 			// console.dir(request.chMsg);
 			var om = new outgoingMsg( request.chMsg );
@@ -29,22 +27,33 @@ chrome.extension.onMessageExternal.addListener(
 chrome.runtime.onMessage.addListener(
 	function(request, sender, sendResponse) {
 		if ( request.changeSetting !== undefined ) {  // change setting message
-			if(request.changeSetting.match("messageColors")) {
-				settings.messageColors[request.changeSetting.substring(13)] = request.value;
+			if(request.changeSetting.match(/^messageColors/)) {
+				settings.messageColors[parseInt(request.changeSetting.substring(13))-1] = request.value;
 			} else if( request.changeSetting == "add"){
 				settings.messageColors.push(request.value) ;
 			} else if( request.changeSetting == "sub"){
 				settings.messageColors.pop();
 			} else {
-				settings[request.changeSetting] = request.value;
+				settings[request.changeSetting] = request.value;				
 			}
 			sendResponse({ result: "true"});
-		} else if ( request.getSettings !== undefined ) {
+			settings.save( settings.username );
+		} else if ( request.getSettings !== undefined ) {			
 			sendResponse({ settings: settings.toString()});
 		}
-	});
+	}
+);
 
 window.onload = function() {
+	chrome.cookies.get({url:"http://st.chatango.com", name:"id.chatango.com"}, function(cookie) {
+		if(cookie) { settings.username = cookie.value; }
+		settings.load(settings.username);
+	});
+	chrome.cookies.onChanged.addListener(function (data){
+		if(data.cookie.name == "id.chatango.com") {
+			console.dir(data);
+		}
+	})
     if (window.jQuery) {  
         // jQuery is loaded
 
@@ -106,8 +115,9 @@ var rx = {
     }
 };
 
-var settings = {  // set to default values
-    
+var settings = {  // default values
+    username: "anon", 
+    // following settings get saved to storage
     powerSwitch: false,
     messageColors: [ "#FF0000","#FFFF00","#00FF00","#00FFFF","#0000FF","#FF00FF","#FF0000","#FFFF00", "#00FF00", "#00FFFF",
                       "#0000FF","#FF00FF","#FF0000","#FFFF00","#00FF00","#00FFFF","#0000FF","#FF00FF", "#FF0000", "#FFFF00"], //,"#FF0000","#00FF00","#00FFFF","#0000FF","#FF0000","#00FF00" ],
@@ -118,11 +128,10 @@ var settings = {  // set to default values
     atNameColorToggle: false,
     urlColor: "#FF0000",
     urlColorToggle: false,    
-    fixedLength: 7,
+    fixedLength: 400, // pixels
     resolution: 1,
+    // following values are pulled from environment
     msgMaxLength: 2900,
-
-    // following values pulled from existing chatango settings 
     usernameColor: "",
     userFontSize: "",
     userFontFace: "",
@@ -143,8 +152,8 @@ var settings = {  // set to default values
     	return JSON.stringify({
     		powerSwitch: settings.powerSwitch,
 		    messageColors: settings.messageColors,
-		    lengthMode: settings.lengthMode,
-		    effectMode: settings.effectMode,
+		    lengthMode: settings.lengthMode || "full",
+		    effectMode: settings.effectMode || "RGB",
 		    blendName: settings.blendName,
 		    atNameColor: settings.atNameColor,
 		    atNameColorToggle: settings.atNameColorToggle,
@@ -152,6 +161,37 @@ var settings = {  // set to default values
 		    urlColorToggle: settings.urlColorToggle,
 		    fixedLength: settings.fixedLength
     	});
+    },
+    // load from storage based on username
+    load: function(username) {
+    	var key = "CEsettings."+username;
+    	chrome.storage.local.get(key, function(o) {
+    		console.dir(o);
+    		console.log("LOADED");
+    		if( !o[key] ) {
+    			settings.save(username);
+    			return;
+    		}
+    		var loaded = JSON.parse(o[key]);
+    		settings.powerSwitch = loaded.powerSwitch;
+	    	settings.messageColors = loaded.messageColors;
+	    	settings.lengthMode = loaded.lengthMode;
+	    	settings.effectMode = loaded.effectMode;
+	    	settings.blendName = loaded.blendName;
+	    	settings.atNameColor = loaded.atNameColor;
+	    	settings.atNameColorToggle = loaded.atNameColorToggle;
+	    	settings.urlColor = loaded.urlColor;
+	    	settings.urlColorToggle = loaded.urlColorToggle;
+	    	settings.fixedLength = loaded.fixedLength;
+    	});
+    },
+    // save to storage based on username
+    save: function(username) {
+    	var obj = {};
+    	obj["CEsettings."+username] = this.toString();
+    	console.dir(obj);
+    	console.log("SAVED");
+    	chrome.storage.local.set( obj );
     }
 }
 
@@ -283,7 +323,7 @@ function outgoingMsg(str) {
                 }
 
                 str = str.replace(toggledWord,"~");
-            	if(settings.atNameColorToggle=="on"){
+            	if( settings.atNameColorToggle ){
                 	toggledWord = "<f x"+ settings.userFontSize + settings.atNameColor.substring(1) + "=\""+ settings.userFontFace +"\">"
                 				+ styleOpen 
 								+ toggledWord
@@ -306,7 +346,7 @@ function outgoingMsg(str) {
 
 	    		str = str.replace(rx.chUrl,"~");
 
-            	if(settings.urlColorToggle=="on"){
+            	if( settings.urlColorToggle ){
 	            	toggledWord = 
 	            		"<f x"+ settings.userFontSize + settings.urlColor.substring(1) + "=\""+ settings.userFontFace +"\">"
 						+ styleOpen 
@@ -418,42 +458,55 @@ function outgoingMsg(str) {
 	    return fnColorCodes;
 	};
 
-	this.blendFixed = function(str) {
+	this.blendFixed = function( blendStr, origStr ) {
 	    var c = settings.messageColors;
 	    var intFunc = d3.interpolateRgbBasis(c);
 	      
 	    var fnColorCodes = [];
 	    // Todo: calculate length based on pixel width.  wrap each character in correctly styled span and use width 
-	    
+	    var processedStr = "";
+	    var width = 0;
+	    var intP = 0;
+	    var bi = 0;
+
 	    var ti = "";
 	    var tlength = 0;
 
 	    while(1) {
-	    	for( var fi = 0; fi < settings.fixedLength; fi++) {
+	    	processedStr = "";
+
+	    	for( var fi = 0; getWidthOfText( processedStr, "Arial", "11pt" ) <= settings.fixedLength; fi++, bi++) {
 	    		// repeat fixed length loop until there are enough color codes
-	    		if( fnColorCodes.length == str.length ) {
+	    		console.dir(fnColorCodes);
+	    		if( fnColorCodes.length == blendStr.length ) {
 	    			return fnColorCodes;
+	    			console.log("returned");
 	    		}
-
-	    		// account for toggled word lengths
-
-	    		ti = this.toggles.checkIndex( fnColorCodes.length );
-	        	if( ti > -1 ) { 
-	        		// todo: youtube video thumb width
-	        		// todo: image thumb width 
-	        		if(this.toggles.type[ti] == emoji ) {
-	        			tlength = 1; // todo: pixel width of emoji
-	        		} else {
-	        			tlength = this.toggles.word[ti].length;	
-	        		}
-	        		fi += ( tlength % settings.fixedLength );
-
-	        		if( fi >= settings.fixedLength ) {
-	        			fi =- settings.fixedLength;
-	        		} 
-	        	}
-	            var intP = fi/settings.fixedLength;
-	            if( fi == settings.fixedLength-1 ) { intP = 1; }
+	    		if(blendStr.charAt(fnColorCodes.length) == "~" && this.toggles.checkIndex( fnColorCodes.length ) > -1) {
+	    			if(this.toggles.type == "emoticon") {
+	    				width = getWidthOfText( processedStr, "Arial", "11px" )
+	    				+ 30;
+	    			} else {
+						width = getWidthOfText( processedStr, "Arial", "11px" )
+						+ ( Math.floor( getWidthOfText(origStr.substring( bi, origStr.indexOf(" ",bi) ))/2) );
+	    			}
+	    			
+	    			processedStr += origStr.substring(bi, origStr.indexOf(" ",bi));
+	    			origStr.replace(origStr.substring(bi, origStr.indexOf(" ",bi)), "~");
+	    			console.log(origStr);
+	    		} else {
+	    			processedStr += blendStr.charAt(fnColorCodes.length);
+	    			width = getWidthOfText( processedStr, "Arial", "11px" );
+	    		}
+	      		if(width > settings.fixedLength) {
+	      			width = width % settings.fixedLength;
+	      		}
+	      		if( (width+getWidthOfText(blendString.charAt(fnColorCodes.length+1),"Arial", "11px")) > settings.fixedLength ) {
+	      			intP = 1;
+	      		} else {
+	      			intP = width/settings.fixedLength;
+	      		}
+	      		console.log(width + " : " + intP);
 	            fnColorCodes.push( rgb2hex( intFunc( intP )));
 	        }
 	    }
@@ -567,7 +620,7 @@ function outgoingMsg(str) {
 		            colorCodes = this.blendFull( this.lines.str[li] );
 		            break;
 		        case "fixed" :
-		            colorCodes = this.blendFixed( this.lines.str[li] );
+		            colorCodes = this.blendFixed( this.lines.str[li] , lines[li]);
 		            break;
 		        case "word" : 
 		            colorCodes = this.blendWords( this.lines.str[li] );
@@ -596,7 +649,7 @@ function outgoingMsg(str) {
 	            colorCodes = this.blendFull(blendString);
 	            break;
 	        case "fixed" :
-	            colorCodes = this.blendFixed(blendString);
+	            colorCodes = this.blendFixed(blendString, userMessage);
 	            break;
 	        case "word" : 
 	            colorCodes = this.blendWords(blendString);
@@ -633,4 +686,24 @@ function getWordAt(str, pos) {
     // Return the word, using the located bounds to extract it from the string.
     return str.slice(left, right + pos);
 
+}
+
+
+function getWidthOfText(txt, fontname, fontsize){
+    var e;
+    // Create dummy span
+    e = document.createElement('span');
+    // Set font-size
+    e.style.fontSize = fontsize;
+    // Set font-face / font-family
+    e.style.fontFamily = fontname;
+    // Set text
+    e.innerHTML = txt;
+    document.body.appendChild(e);
+    // Get width NOW, since the dummy span is about to be removed from the document
+    var w = e.offsetWidth;
+    // Cleanup
+    document.body.removeChild(e);
+    // All right, we're done
+    return w;
 }

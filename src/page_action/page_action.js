@@ -1,5 +1,5 @@
 var settings = {
-    messageColors: [ "#FF0000","#FFFF00","#00FF00","#00FFFF","#0000FF", "#FF0000","#FFFF00","#00FF00","#00FFFF","#0000FF"],
+    // messageColors: [ "#FF0000","#FFFF00","#00FF00","#00FFFF","#0000FF", "#FF0000","#FFFF00","#00FF00","#00FFFF","#0000FF"],
     //                 //"#FF0000","#FFFF00","#00FF00","#00FFFF","#0000FF","#FF0000","#FFFF00","#00FF00","#00FFFF","#0000FF" ]
     // lengthMode: "word"
 }
@@ -44,9 +44,10 @@ var readyStateCheckInterval = setInterval(function() {
 
 function changeSetting(setting, value) {
     settings[setting] = value;
+    console.dir(settings);
     chrome.runtime.sendMessage({
         changeSetting : setting,
-        newValue: value
+        value: value
     }, function(response) {
         // do somethign with response maybe? meh
     });
@@ -55,6 +56,7 @@ function changeSetting(setting, value) {
 function getSettings() {
     chrome.runtime.sendMessage({getSettings: true}, function(response) {
         settings = JSON.parse(response.settings);
+        console.dir(settings);
         initForm();
     });
 }
@@ -69,7 +71,7 @@ function initForm() {
         $(".colorPickerContainer").each( function(i,el){                
             if(i < settings.messageColors.length) {
                 $(el).find(".colorPicker").attr("value",settings.messageColors[i]);
-                $(el).show(); //css("display","inline-block");
+                //$(el).show(); //css("display","inline-block"); 
             } else if( $(el).parents("#colorControlsContainer").length > 0 ) {
                 $(el).hide(); //css("display","none");
             }
@@ -82,10 +84,12 @@ function initForm() {
             } else if (settings.messageColors.length == 1) {
                 $("#sub").css("visibility","visible");
             }
-            settings.messageColors.push("");
-            var newPicker = $("#cPicker"+settings.messageColors.length);
+            var newPicker = $("#cPicker"+(settings.messageColors.length+1));
             newPicker.parents(".colorPickerContainer").show();
-            settings.messageColors[settings.messageColors.length-1] = newPicker.val();
+            if(shiftDown) {
+                newPicker.minicolors( "value", settings.messageColors.slice(-1)[0] );
+            }
+            settings.messageColors.push(newPicker.val());
             changeSetting("add", newPicker.val());
         });
 
@@ -103,6 +107,7 @@ function initForm() {
 
         $("#lengthModeSelect").change(function(e) {
             var value = $(e.target).val();
+            console.dir(value);
             if(value=="fixed"){
                 $("#fixedLengthInput, #fixedLengthTitle").show();
             } else {
@@ -116,11 +121,11 @@ function initForm() {
 
         $("#fixedLengthInput").change(function(e){
             changeSetting("fixedLength", $(e.target).val());
-        });
+        }).val(settings.fixedLength);
 
-        $("#blendNameToggle").change(function(e){
+        $("#blendNameToggle").change(function(e){            
             changeSetting("blendName", e.target.checked);
-        }); 
+        });
         if( settings.blendName ) {
              $("#blendNameToggle")[0].checked = true;
         } 
@@ -130,7 +135,8 @@ function initForm() {
         });
         if( settings.atNameColorToggle ) {
              $("#atNameColorToggle")[0].checked = true;
-        } 
+        }
+        $("#atNameColorPicker").attr("value",settings.atNameColor);
 
         $("#urlColorToggle").change(function(e){
             changeSetting("urlColorToggle", e.target.checked);
@@ -138,6 +144,7 @@ function initForm() {
         if( settings.urlColorToggle ) {
              $("#urlColorToggle")[0].checked = true;
         }
+        $("#urlColorPicker").attr("value",settings.urlColor);
 
         $("#powerButton").click(function(e){
             if(settings.powerSwitch) {                    
@@ -170,13 +177,14 @@ function initForm() {
             hide: function() {
                 if(count > 1) { count=1; return; } 
                 count++;  // prevents jquery double event bug 
-
-                var colorId = $(this).attr("id").substring(7);
-                if($(this).parents("#colorControlsContainer") > 0) {
+                
+                var colorId = $(this).attr("id").substring(7);                
+                if( this.id.match(/^cPicker/)) { 
+                    console.log("hey");
                     changeSetting("messageColors"+colorId, this.value);
-                } else if($(this).parents("#atNameColorContainer") > 0) {
+                } else if(this.id.match(/^atNameColorPicker/) ) {
                     changeSetting("atNameColor" , this.value);
-                } else if($(this).parents("#urlColorContainer") > 0) {
+                } else if(this.id.match(/^urlColorPicker/)) {
                     changeSetting("urlColor" , this.value);
                 }
             },
@@ -192,3 +200,15 @@ function initForm() {
             );
     });
 }
+
+var shiftDown = false;
+$(window).keydown(function(e) {
+  if (e.which == 16) { // shift    
+    shiftDown = true;
+  }
+}).keyup(function(e) {
+  if (e.which == 16) { // shift
+    shiftDown = false;
+    console.log('wwooo');
+  }
+});

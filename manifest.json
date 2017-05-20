@@ -10,7 +10,9 @@
   },
   "default_locale": "en",
   "permissions": [    
-    "http://st.chatango.com/*/id.html"
+    "http://st.chatango.com/*/id.html",
+    "storage",
+    "cookies"
   ],
   "background": {
     "page": "src/bg/background.html",
