@@ -1,6 +1,6 @@
 {
   "name": "Chatango Extender",
-  "version": "0.1.14",
+  "version": "0.2.0",
   "manifest_version": 2,
   "description": "Extend the Chatango HTML5 client with color effects and more", 
   "icons": {
@@ -9,17 +9,26 @@
     "128": "icons/icon128.png"
   },
   "default_locale": "en",
-
   "permissions": [    
-    "http://st.chatango.com/*"
+    "http://*.chatango.com/*",
+    "storage",
+    "cookies"
   ],
+  "background": {
+    "page": "src/bg/background.html",
+    "persistent": true
+  },
+  "page_action": {
+    "default_icon": "icons/icon16.png",
+    "default_title": "Chatango Extender",
+    "default_popup": "src/page_action/page_action.html"
+  },
   "content_scripts": [
     {
       "matches": [
         "http://st.chatango.com/*/id.html"
       ],
       "js": [
-        "js/jquery.min.js",
         "src/inject/inject.js"
       ],
       "css": [
@@ -29,8 +38,11 @@
       "all_frames": true      
     }
   ],
-  "web_accessible_resources": [    
-    "http://d3js.org/*",     
+  "externally_connectable": {
+    "matches": ["http://st.chatango.com/*/id.html"]
+  },
+  "web_accessible_resources": [ 
+    "css/*",
     "js/*",
     "icons/*"
   ]
