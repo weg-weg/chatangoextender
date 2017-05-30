@@ -12,12 +12,16 @@ chrome.extension.onMessageExternal.addListener(
 		} else if( request.chMsg !== undefined ) { // user sent message 			
 			////////////////
 			// console.dir(request.chMsg);
-			var om = new outgoingMsg( request.chMsg );
-			var response = om.styledMsg;
-			if(response.length > settings.msgMaxLength) {
-				response = request.chMsg;
-			}
-			sendResponse({ styledMsg : "~" + response });
+            if( !settings.powerSwitch ) {
+                sendResponse({ styledMsg : "~" + request.chMsg });
+            } else {
+    			var om = new outgoingMsg( request.chMsg );
+    			var response = om.styledMsg;
+    			if(response.length > settings.msgMaxLength ) {
+    				response = request.chMsg;
+    			}
+    			sendResponse({ styledMsg : "~" + response });
+            }
 			////////////////
 
 		} else if ( request.msgMaxLength !== undefined ) {

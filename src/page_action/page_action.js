@@ -146,6 +146,10 @@ function initForm() {
         }
         $("#urlColorPicker").attr("value",settings.urlColor);
 
+        if (!settings.powerSwitch) {
+            $("#powerButton").toggleClass("off");
+            $("#powerButton").toggleClass("on");
+        }
         $("#powerButton").click(function(e){
             if(settings.powerSwitch) {                    
                 $(e.target).toggleClass("off");
@@ -158,7 +162,8 @@ function initForm() {
                 settings.powerSwitch = true;
                 changeSetting("powerSwitch", true);
             }
-        })
+        });
+
 
     })
 
@@ -179,8 +184,7 @@ function initForm() {
                 count++;  // prevents jquery double event bug 
                 
                 var colorId = $(this).attr("id").substring(7);                
-                if( this.id.match(/^cPicker/)) { 
-                    console.log("hey");
+                if( this.id.match(/^cPicker/)) {
                     changeSetting("messageColors"+colorId, this.value);
                 } else if(this.id.match(/^atNameColorPicker/) ) {
                     changeSetting("atNameColor" , this.value);
@@ -189,15 +193,15 @@ function initForm() {
                 }
             },
             change: function(hex,alpha) {
-                $(this).parent().find(".pickerTextInput").attr("value",hex);
+                $(this).parent().find(".pickerTextInput").val(hex);
             }
         });
         $(".minicolors-panel").append(
             $("<input class=\"pickerTextInput\" type=\"text\" length=\"10\">")                
-            .change(function(e){
-                $(e.target).parent().find(".colorPicker").attr("value")
+            .change(function(e){                
+                $(e.target).parents(".colorPickerContainer").find(".colorPicker").minicolors("value",{color:e.target.value});                
             }) 
-            );
+        );
     });
 }
 
