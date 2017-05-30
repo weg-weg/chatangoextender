@@ -6,13 +6,7 @@ var readyStateCheckInterval = setInterval(function() {
         // ----------------------------------------------------------
         // This part of the script triggers when page is done loading
         // ----------------------------------------------------------        
-        var username = document.cookie.match(/id\.chatango\.com=([^;]+)/gi);        
-        if(username != null) { username = username[0].substring(username[0].indexOf("=")+1); }
-        else { username = "anon"; }
-        console.log(username);
-        chrome.runtime.sendMessage(rtid,{username: username}, function(response) {
-            
-        });
+        
         chrome.runtime.sendMessage(rtid,{loadSuccess: "true"}, function(response) {
             
         });

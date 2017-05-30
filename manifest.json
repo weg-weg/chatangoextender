@@ -10,7 +10,7 @@
   },
   "default_locale": "en",
   "permissions": [    
-    "http://st.chatango.com/*/id.html",
+    "http://*.chatango.com/*",
     "storage",
     "cookies"
   ],

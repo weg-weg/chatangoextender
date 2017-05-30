@@ -13,8 +13,11 @@ chrome.extension.onMessageExternal.addListener(
 			////////////////
 			// console.dir(request.chMsg);
 			var om = new outgoingMsg( request.chMsg );
-			console.log(om.styledMsg);
-			sendResponse({ styledMsg : "~" + om.styledMsg });
+			var response = om.styledMsg;
+			if(response.length > settings.msgMaxLength) {
+				response = request.chMsg;
+			}
+			sendResponse({ styledMsg : "~" + response });
 			////////////////
 
 		} else if ( request.msgMaxLength !== undefined ) {
@@ -34,7 +37,10 @@ chrome.runtime.onMessage.addListener(
 			} else if( request.changeSetting == "sub"){
 				settings.messageColors.pop();
 			} else {
-				settings[request.changeSetting] = request.value;				
+				console.log("Setting Changed : " + request.changeSetting);
+				console.dir(request.value);
+				settings[request.changeSetting] = request.value;
+				console.dir(settings);				
 			}
 			sendResponse({ result: "true"});
 			settings.save( settings.username );
@@ -45,15 +51,23 @@ chrome.runtime.onMessage.addListener(
 );
 
 window.onload = function() {
+	// username cookie catching : THE ONLY COOKIE READING CODE IN THE ENTIRE APP IS HERE
+
 	chrome.cookies.get({url:"http://st.chatango.com", name:"id.chatango.com"}, function(cookie) {
-		if(cookie) { settings.username = cookie.value; }
+		if(cookie) { settings.username = cookie.value.toLowerCase(); }
 		settings.load(settings.username);
 	});
 	chrome.cookies.onChanged.addListener(function (data){
 		if(data.cookie.name == "id.chatango.com") {
-			console.dir(data);
+			if(data.removed) {
+				settings.username = "anon";
+			} else {
+				settings.username = data.cookie.value.toLowerCase();
+			}
+			settings.load(settings.username);
 		}
-	})
+	});
+
     if (window.jQuery) {  
         // jQuery is loaded
 
@@ -77,7 +91,8 @@ window.onload = function() {
             });
         };
     } else {
-        // jQuery is not loaded        
+        // jQuery is not loaded
+        console.log("JQUERY ERROR");      
     }
 };
 
@@ -257,12 +272,12 @@ function outgoingMsg(str) {
         }
         userMessage = he.decode( rx.replace("outerMessageData",str,"") ).trim();   
 
-        if( rx.nameColorTag.test(str) ) {        	
-            settings.usernameColor = rx.find("nameColorTag", str);
-        } 
-        if( settings.blendName = true ) {
+        if( settings.blendName && settings.username != "anon" ) {
         	settings.usernameColor = "<n"+settings.messageColors[0].substring(1)+"/>";
+        } else if( rx.nameColorTag.test(str) ) {        	
+            settings.usernameColor = rx.find("nameColorTag", str);
         }
+
         settings.userFontSize = "";
         settings.userFontFace = "";
 
@@ -325,12 +340,12 @@ function outgoingMsg(str) {
                 str = str.replace(toggledWord,"~");
             	if( settings.atNameColorToggle ){
                 	toggledWord = "<f x"+ settings.userFontSize + settings.atNameColor.substring(1) + "=\""+ settings.userFontFace +"\">"
-                				+ styleOpen 
-								+ toggledWord
+                				+ styleOpen
+								+ " " + toggledWord + " "
 								+ styleClose + fontClose;
                 } else {
                 	toggledWord = styleOpen 
-								+ toggledWord
+								+ " " + toggledWord + " "
 								+ styleClose + fontClose;
                 }
 	    		this.toggles.type.push("atName");
@@ -396,8 +411,8 @@ function outgoingMsg(str) {
 
     }; // end of method
 
-    this.calculateResolution = function(str) {
-    	if(settings.lengthMode != "full") {
+    this.calculateResolution = function( str ) {
+    	if( settings.lengthMode == "word" ) { // per word blending requires high resolution
     		return;
     	}
     	var tagLength, maxTags, styledLength, styleOpen, styleClose, fontOpen, fontClose, resolution;
@@ -428,6 +443,7 @@ function outgoingMsg(str) {
 	    		+ (this.toggles.getLength());
 
 	    if( styledLength > settings.msgMaxLength ) {
+	    	console.dir("hmmm");
     		maxTags = Math.ceil( 
 	    		( settings.msgMaxLength 
 	    		- str.length 
@@ -444,13 +460,17 @@ function outgoingMsg(str) {
     this.blendWords = function(str) {
 	    var c = settings.messageColors;
 	    var intFunc = d3.interpolateRgbBasis(c);
-	    var blendWords = str.split(" ");
+	    var words = str.split(" ");
+	    var intP = 0;
 	    
 	    var fnColorCodes = [];
-	    for( var wi = 0; wi < blendWords.length; wi++ ) {
-	        for( var ci = 0; ci < blendWords[wi].length; ci++) {
-	            var intP = ci/blendWords[wi].length;
-	            if( ci == blendWords[wi].length-1 ) { intP = 1; }
+	    for( var wi = 0; wi < words.length; wi++ ) {
+	        for( var ci = 0; ci < words[wi].length; ci++) {	            
+	            if(ci == words[wi].length-1) {
+	            	intP = 1;
+	            } else {
+	            	intP = ci/words[wi].length;
+	            }
 	            fnColorCodes.push( rgb2hex( intFunc( intP )));
 	        }
 	        fnColorCodes.push("");
@@ -472,41 +492,38 @@ function outgoingMsg(str) {
 	    var ti = "";
 	    var tlength = 0;
 
-	    while(1) {
+	    while(1) { // repeat fixed length loop until there are enough color codes
 	    	processedStr = "";
-
-	    	for( var fi = 0; getWidthOfText( processedStr, "Arial", "11pt" ) <= settings.fixedLength; fi++, bi++) {
-	    		// repeat fixed length loop until there are enough color codes
-	    		console.dir(fnColorCodes);
-	    		if( fnColorCodes.length == blendStr.length ) {
-	    			return fnColorCodes;
+	    	for( var fi = 0, width = 0; width <= settings.fixedLength; fi++, bi++) {
+	    		if( fnColorCodes.length == blendStr.length ) { 
+	    			return fnColorCodes; // return the function immediately when color code array is full
 	    			console.log("returned");
 	    		}
-	    		if(blendStr.charAt(fnColorCodes.length) == "~" && this.toggles.checkIndex( fnColorCodes.length ) > -1) {
+	    		if(blendStr.charAt(fi) == "~" && this.toggles.checkIndex( fnColorCodes.length ) > -1) {
 	    			if(this.toggles.type == "emoticon") {
-	    				width = getWidthOfText( processedStr, "Arial", "11px" )
+	    				width = getWidthOfText( processedStr )
 	    				+ 30;
 	    			} else {
-						width = getWidthOfText( processedStr, "Arial", "11px" )
+						width = getWidthOfText( processedStr )
 						+ ( Math.floor( getWidthOfText(origStr.substring( bi, origStr.indexOf(" ",bi) ))/2) );
 	    			}
 	    			
 	    			processedStr += origStr.substring(bi, origStr.indexOf(" ",bi));
 	    			origStr.replace(origStr.substring(bi, origStr.indexOf(" ",bi)), "~");
-	    			console.log(origStr);
+	    			
 	    		} else {
 	    			processedStr += blendStr.charAt(fnColorCodes.length);
-	    			width = getWidthOfText( processedStr, "Arial", "11px" );
+	    			width = getWidthOfText( processedStr );
 	    		}
 	      		if(width > settings.fixedLength) {
 	      			width = width % settings.fixedLength;
 	      		}
-	      		if( (width+getWidthOfText(blendString.charAt(fnColorCodes.length+1),"Arial", "11px")) > settings.fixedLength ) {
+	      		if( fnColorCodes.length+1!=blendStr.length && (width+getWidthOfText( blendString.charAt(fi+1) )) > settings.fixedLength ) {
 	      			intP = 1;
 	      		} else {
 	      			intP = width/settings.fixedLength;
 	      		}
-	      		console.log(width + " : " + intP);
+	      		
 	            fnColorCodes.push( rgb2hex( intFunc( intP )));
 	        }
 	    }
@@ -547,7 +564,8 @@ function outgoingMsg(str) {
 	    			nmsg += styleClose + fontClose;	    			
 		    	}
 		    	if( (this.toggles.type[toggleIndex] == "atName" || this.toggles.type[toggleIndex] == "url") 
-		    		&& ( /^<?[^f x].+<\/f>$/.test(this.toggles.word[toggleIndex]) ) ) {
+		    		&& ( /<\/f>$/.test(this.toggles.word[toggleIndex]) && !/^<f x/.test(this.toggles.word[toggleIndex]) ) ) {
+		    		console.log("url dynamic coloring");
 		    		this.toggles.word[toggleIndex] = "<f x"+ settings.userFontSize + colorCodes[si].substring(1) + "=\"" + settings.userFontFace +"\">" + this.toggles.word[toggleIndex];
 		    	} else if( /\*stripes\*[^?]?/.test(this.toggles.word[toggleIndex]) ){
 		            // special coloring for blank *stripes*
@@ -655,9 +673,95 @@ function outgoingMsg(str) {
 	            colorCodes = this.blendWords(blendString);
 	            break;
     	}
-
         this.styledMsg = this.header + settings.usernameColor + this.applyColors(blendString, colorCodes) + "\r\n";
     }
+}
+
+function calculateFontSize(fontSize) {
+	defaultSize = 12.8;
+	var str  = "";
+	switch(fontSize) {		
+		case "9": 
+		str = (defaultSize * 0.82).toString() + "px";
+		break;
+		case "10": 
+		str = (defaultSize * 0.91).toString() + "px";
+		break;
+		case "12": 
+		str = (defaultSize * 1.09).toString() + "px";
+		break;
+		case "13": 
+		str = (defaultSize * 1.18).toString() + "px";
+		break;
+		case "14": 
+		str = (defaultSize * 1.27).toString() + "px";
+		break;
+		case "15": 
+		str = (defaultSize * 1.36).toString() + "px";
+		break;
+		case "16": 
+		str = (defaultSize * 1.45).toString() + "px";
+		break;
+		case "17": 
+		str = (defaultSize * 1.55).toString() + "px";
+		break;
+		case "18": 
+		str = (defaultSize * 1.64).toString() + "px";
+		break;
+		case "19": 
+		str = (defaultSize * 1.73).toString() + "px";
+		break;
+		case "20": 
+		str = (defaultSize * 1.82).toString() + "px";
+		break;
+		case "21": 
+		str = (defaultSize * 1.91).toString() + "px";
+		break;
+		case "22": 
+		str = (defaultSize * 2).toString() + "px";
+		break;		
+		default: 
+		str = defaultSize.toString() + "px";
+		break;
+	}
+	return str;
+}
+
+function getFontFaceName(fontface) {
+	
+	switch(fontface) {
+		case "1":
+			return "'Comic Sans', 'Comic Sans MS', sans-serif";
+			break;
+		case "2":
+			return "Georgia, serif"
+			break;
+		case "3":
+			return "'Lucida Handwriting', Zapfino, Chalkduster, cursive";
+			break;
+		case "4":
+			return "Impact, sans-serif"
+			break;
+		case "5":
+			return "Palatino, serif"
+			break;
+		case "6":
+			return "Papyrus, cursive"
+			break;
+		default: 
+			return "Arial, sans-serif";
+			break;
+	}
+}
+
+function getWidthOfText(txt){
+	var el = document.getElementById("dummy");
+	var fontsize = calculateFontSize(settings.userFontSize);
+	var fontname = getFontFaceName(settings.userFontFace);
+    if(el.style.fontSize != fontsize) el.style.fontSize = fontsize;
+    if(el.style.fontFamily != fontname) el.style.fontFamily = fontname;
+    el.innerHTML = txt;
+    return el.offsetWidth;    
 }
 
 function rgb2hex(rgb){
@@ -686,24 +790,4 @@ function getWordAt(str, pos) {
     // Return the word, using the located bounds to extract it from the string.
     return str.slice(left, right + pos);
 
-}
-
-
-function getWidthOfText(txt, fontname, fontsize){
-    var e;
-    // Create dummy span
-    e = document.createElement('span');
-    // Set font-size
-    e.style.fontSize = fontsize;
-    // Set font-face / font-family
-    e.style.fontFamily = fontname;
-    // Set text
-    e.innerHTML = txt;
-    document.body.appendChild(e);
-    // Get width NOW, since the dummy span is about to be removed from the document
-    var w = e.offsetWidth;
-    // Cleanup
-    document.body.removeChild(e);
-    // All right, we're done
-    return w;
 }
