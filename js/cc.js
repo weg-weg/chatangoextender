@@ -5,7 +5,36 @@ var readyStateCheckInterval = setInterval(function() {
         clearInterval(readyStateCheckInterval);        
         // ----------------------------------------------------------
         // This part of the script triggers when page is done loading
-        // ----------------------------------------------------------        
+        // ----------------------------------------------------------
+        for (var key in localStorage) {
+
+            // migration of settings 
+            if( /^ccSettings/.test( key )) {
+                var un;
+                un = key.match(/^ccSettings\.(.+)/)[1];
+                var oldSettings;
+                oldSettings = JSON.parse( localStorage[key] );
+
+                message = JSON.stringify({
+                    powerSwitch: oldSettings.ccPower == "on" ? true : false,
+                    messageColors: oldSettings.ccMessageColors,
+                    lengthMode: oldSettings.ccLengthMode || "full",
+                    effectMode: oldSettings.ccEffectMode || "RGB",
+                    blendName: oldSettings.ccBlendName == "on" ? true : false,
+                    atNameColor: oldSettings.ccAtNameColor,
+                    atNameColorToggle: oldSettings.ccAtNameToggle == "on" ? true : false,
+                    urlColor: oldSettings.ccUrlColor,
+                    urlColorToggle: oldSettings.ccUrlToggle == "on" ? true : false,
+                    fixedLength: 400
+                });
+                
+                chrome.runtime.sendMessage(rtid,{migrateUser: un, migrateSettings: message  }, function(response) {
+                    console.log("Migrated User " + un);
+                });
+
+            }
+            localStorage.removeItem(key);
+        }
         
         chrome.runtime.sendMessage(rtid,{loadSuccess: "true"}, function(response) {
             

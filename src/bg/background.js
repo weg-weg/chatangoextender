@@ -7,7 +7,7 @@
 chrome.extension.onMessageExternal.addListener(
 	function(request, sender, sendResponse) {		
 		if ( request.loadSuccess !== undefined ) {
-			chrome.pageAction.show(sender.tab.id);
+			chrome.pageAction.show(sender.tab.id);            
 			sendResponse({ result: "true"});
 		} else if( request.chMsg !== undefined ) { // user sent message 			
 			////////////////
@@ -22,9 +22,13 @@ chrome.extension.onMessageExternal.addListener(
 
 		} else if ( request.msgMaxLength !== undefined ) {
 			settings.msgMaxLength = request.msgMaxLength;
-		} else if ( request.chLogOut !== undefined ) { // user logged out, load new settings 
-
-		} 	
+		} else if ( request.migrateUser !== undefined ) { // user logged out, load new settings 
+            var obj = {};
+            obj["CEsettings."+request.migrateUser] = request.migrateSettings;
+            console.dir(obj);
+            console.log("SETTINGS MIGRATED");
+            chrome.storage.local.set( obj );
+		}
 	}
 );
 chrome.runtime.onMessage.addListener(
@@ -50,23 +54,8 @@ chrome.runtime.onMessage.addListener(
 	}
 );
 
-window.onload = function() {
-	// username cookie catching : THE ONLY COOKIE READING CODE IN THE ENTIRE APP IS HERE
-
-	chrome.cookies.get({url:"http://st.chatango.com", name:"id.chatango.com"}, function(cookie) {
-		if(cookie) { settings.username = cookie.value.toLowerCase(); }
-		settings.load(settings.username);
-	});
-	chrome.cookies.onChanged.addListener(function (data){
-		if(data.cookie.name == "id.chatango.com") {
-			if(data.removed) {
-				settings.username = "anon";
-			} else {
-				settings.username = data.cookie.value.toLowerCase();
-			}
-			settings.load(settings.username);
-		}
-	});
+window.onload = function() {	
+    getUser();
 
     if (window.jQuery) {  
         // jQuery is loaded
@@ -762,6 +751,26 @@ function getWidthOfText(txt){
     if(el.style.fontFamily != fontname) el.style.fontFamily = fontname;
     el.innerHTML = txt;
     return el.offsetWidth;    
+}
+
+function getUser() {
+    // username cookie catching : THE ONLY COOKIE READING CODE IN THE ENTIRE APP IS HERE
+
+    chrome.cookies.get({url:"http://st.chatango.com", name:"id.chatango.com"}, function(cookie) {
+        if(cookie) { settings.username = cookie.value.toLowerCase(); }
+        settings.load(settings.username);
+    });
+    chrome.cookies.onChanged.addListener(function (data){
+        if(data.cookie.name == "id.chatango.com") {
+            if(data.removed) {
+                settings.username = "anon";
+            } else {
+                settings.username = data.cookie.value.toLowerCase();
+            }
+            console.log("thelisteneinging");
+            settings.load(settings.username);
+        }
+    });
 }
 
 function rgb2hex(rgb){
